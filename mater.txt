@@ -1,0 +1,1893 @@
+# MASTER DEVELOPMENT PROMPT — PREMIUM NUMEROLOGY PLATFORM
+
+## 1. PROJECT OBJECTIVE
+
+Build a complete, premium-quality, production-ready numerology web application based on the exact numerology methodology and calculation rules described in this document.
+
+This must not be a basic numerology calculator. It should be a complete, secure, subscription-based numerology SaaS platform with:
+
+- User registration and OTP-based authentication.
+- Single-device login enforcement.
+- Automatic session expiry after 30 days.
+- User dashboard and personal profile.
+- Subscription and plan management.
+- Numerology chart generation and analysis.
+- Natal, Basic, Destiny, Mahadasha, Personal Year, Monthly, and Daily calculations.
+- 100-year numerology timeline.
+- Saved charts and chart comparison.
+- Comprehensive admin dashboard.
+- Responsive support for all major operating systems and devices.
+- Accessibility for blind and visually impaired users.
+- Download and export functionality.
+- Modular, scalable, maintainable code architecture.
+
+**Primary development principle:** Build the application as independent, reusable, well-organized modules. Avoid putting the entire application into a few large files or components.
+
+The application must be easy to debug, repair, maintain, test, and extend with new features.
+
+---
+
+# 2. FIRST STEP: INSPECT THE EXISTING PROJECT
+
+Before writing or modifying code:
+
+1. Inspect the complete existing repository.
+2. Identify the current frontend and backend frameworks.
+3. Identify the database, authentication system, routing, and existing dependencies.
+4. Understand the current folder structure.
+5. Identify reusable components and existing functionality.
+6. Check existing environment variables and deployment configuration.
+7. Do not unnecessarily replace working code or migrate to another technology.
+8. Preserve existing project functionality wherever possible.
+9. Identify technical problems before implementing new features.
+
+If the repository is empty, propose a suitable production-ready stack and explain the selection briefly before implementation.
+
+Do not blindly generate a new project over an existing one.
+
+---
+
+# 3. MODULAR SOFTWARE ARCHITECTURE — VERY IMPORTANT
+
+The entire application must follow a modular architecture.
+
+Each feature must have its own independent components, services, utilities, validations, API handlers, and tests wherever appropriate.
+
+## 3.1 Architecture rules
+
+- Follow separation of concerns.
+- Keep business logic separate from UI components.
+- Keep numerology calculations separate from database operations.
+- Keep API communication separate from presentation components.
+- Avoid unnecessary dependencies between modules.
+- Use reusable components and shared utilities.
+- Use consistent naming conventions.
+- Avoid duplicate calculation logic.
+- Keep configuration outside business logic.
+- Use centralized error handling and logging.
+- Add clear comments for complex calculations.
+- Write small, focused functions.
+- Use strict validation at frontend and backend boundaries.
+- Make each module independently testable.
+
+## 3.2 Suggested module organization
+
+Adapt this structure to the existing technology stack rather than forcing an unnecessary migration.
+
+```text
+project/
+│
+├── frontend/
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── routes/
+│   │   │   ├── layouts/
+│   │   │   └── providers/
+│   │   │
+│   │   ├── modules/
+│   │   │   ├── authentication/
+│   │   │   ├── dashboard/
+│   │   │   ├── user-profile/
+│   │   │   ├── subscriptions/
+│   │   │   ├── numerology/
+│   │   │   │   ├── basic-number/
+│   │   │   │   ├── destiny-number/
+│   │   │   │   ├── natal-grid/
+│   │   │   │   ├── mahadasha/
+│   │   │   │   ├── personal-year/
+│   │   │   │   ├── pratyantar/
+│   │   │   │   ├── day-lord/
+│   │   │   │   ├── daily-grid/
+│   │   │   │   └── timeline/
+│   │   │   ├── saved-charts/
+│   │   │   ├── chart-comparison/
+│   │   │   ├── admin/
+│   │   │   └── settings/
+│   │   │
+│   │   ├── components/
+│   │   │   ├── common/
+│   │   │   ├── forms/
+│   │   │   ├── navigation/
+│   │   │   ├── charts/
+│   │   │   └── accessibility/
+│   │   │
+│   │   ├── services/
+│   │   ├── hooks/
+│   │   ├── utils/
+│   │   ├── constants/
+│   │   ├── styles/
+│   │   └── assets/
+│   │
+│   └── tests/
+│
+├── backend/
+│   ├── src/
+│   │   ├── modules/
+│   │   │   ├── authentication/
+│   │   │   ├── users/
+│   │   │   ├── profiles/
+│   │   │   ├── subscriptions/
+│   │   │   ├── numerology/
+│   │   │   ├── saved-charts/
+│   │   │   ├── admin/
+│   │   │   ├── notifications/
+│   │   │   └── audit-logs/
+│   │   │
+│   │   ├── middleware/
+│   │   ├── database/
+│   │   ├── config/
+│   │   ├── utils/
+│   │   ├── validators/
+│   │   └── shared/
+│   │
+│   └── tests/
+│
+├── docs/
+├── scripts/
+├── .env.example
+└── README.md
+```
+
+This is a logical reference structure. Adjust it according to the actual framework.
+
+## 3.3 Numerology engine must be independent
+
+Create a dedicated numerology calculation engine.
+
+It must not depend on React components, UI state, database queries, or API request handlers.
+
+For example:
+
+- `basicNumberCalculator`
+- `destinyNumberCalculator`
+- `natalGridCalculator`
+- `mahadashaCalculator`
+- `personalYearCalculator`
+- `pratyantarCalculator`
+- `dayLordCalculator`
+- `annualGridCalculator`
+- `dailyGridCalculator`
+- `hundredYearTimelineCalculator`
+
+Each calculator should accept validated input and return structured output.
+
+The same calculation engine must be reusable by the frontend, backend, chart export, and automated tests.
+
+## 3.4 Development and debugging rules
+
+- Implement one module at a time.
+- Test every module before integrating it with other modules.
+- Never make unrelated changes while fixing a bug.
+- Maintain backward compatibility when changing calculation logic.
+- Use reusable error classes and meaningful error messages.
+- Keep API contracts documented.
+- Add unit tests for all important calculations.
+- Add integration tests for authentication, subscriptions, and chart generation.
+- Maintain a clear changelog for significant changes.
+- Never leave unfinished placeholder functionality presented as complete.
+- Never silently remove existing working functionality.
+
+---
+
+# 4. USER REGISTRATION AND AUTHENTICATION
+
+Implement a secure OTP-based authentication system.
+
+## 4.1 OTP login
+
+Normal users must log in using OTP rather than a conventional password.
+
+Support:
+
+- Email OTP.
+- Mobile SMS OTP.
+- A choice of available verification channel on the login screen.
+- OTP resend functionality.
+- OTP expiration.
+- OTP attempt limits.
+- Rate limiting.
+- Protection against OTP brute-force attacks.
+- Secure OTP verification.
+- Clear success and failure messages.
+
+OTP delivery must use configurable server-side email and SMS providers.
+
+Do not hardcode API keys or provider credentials.
+
+If a delivery provider has not been configured, show a clear setup error rather than pretending that OTP was sent.
+
+## 4.2 Single-device login enforcement
+
+One user account must have only one active authenticated device/session at a time.
+
+Example:
+
+1. User logs in on Laptop A.
+2. Laptop A receives an authenticated session.
+3. The same user logs in on Mobile B.
+4. The previous Laptop A session is immediately revoked.
+5. Laptop A must no longer be able to access protected pages or APIs.
+6. Mobile B becomes the only active session.
+
+Requirements:
+
+- Maintain the active session on the backend.
+- Revoke the previous session when a new login succeeds.
+- Validate the session on every protected backend request.
+- Do not rely only on frontend state or localStorage.
+- Show a suitable message when an account is logged in elsewhere.
+- Handle concurrent login requests safely.
+- Provide an admin option to revoke a user's active session.
+
+## 4.3 Automatic logout after 30 days
+
+Every authenticated user session must have a strict maximum lifetime of 30 days.
+
+- Enforce expiry on the backend.
+- Do not extend the 30-day maximum merely because the user is active.
+- After expiry, require fresh OTP verification.
+- Clear the client session securely.
+- Prevent expired sessions from accessing protected APIs.
+- Display an appropriate session-expired message.
+
+## 4.4 Account security
+
+- Secure session cookies where supported.
+- Use HTTPS in production.
+- Protect against CSRF, XSS, and common authentication attacks.
+- Never expose OTP values, session tokens, or private credentials in logs.
+- Implement logout functionality.
+- Implement session revocation.
+- Protect against account enumeration where practical.
+
+---
+
+# 5. USER DASHBOARD
+
+After successful login, users should reach a premium, personalized dashboard.
+
+The dashboard should include:
+
+- Welcome message.
+- User's name.
+- Profile summary.
+- Current subscription plan.
+- Subscription status.
+- Subscription expiry date.
+- Quick chart-generation action.
+- Recently generated charts.
+- Saved charts.
+- Recent activity.
+- Important account notifications.
+- Quick navigation to all numerology modules.
+
+Dashboard data should be retrieved from the backend and should reflect the actual account state.
+
+Do not display fake subscription information or placeholder user statistics.
+
+---
+
+# 6. USER PROFILE TAB — MANDATORY FEATURE
+
+Create a dedicated **My Profile** tab in the main application navigation.
+
+Users must be able to view their complete account information and subscription details in one place.
+
+## 6.1 Personal information
+
+Display:
+
+- Full name.
+- Profile photo, if supported.
+- Email address.
+- Mobile number.
+- Account ID or unique user ID.
+- Registration date.
+- Account status.
+- Preferred language, if supported.
+- Time zone.
+- Last login information.
+- Current active device/session information, where appropriate.
+
+Users should be able to edit permitted profile fields.
+
+For changes to email or mobile number, require verification of the new contact detail before updating it.
+
+Do not allow users to modify administrator-controlled fields.
+
+## 6.2 Birth and numerology information
+
+Provide a dedicated section containing:
+
+- Date of birth.
+- Time of birth.
+- Place of birth, if collected.
+- Basic Number / Mulank.
+- Destiny Number / Bhagyank.
+- Other calculated numerology information.
+
+Users must be able to review and update their birth details.
+
+When birth information changes:
+
+1. Validate the new information.
+2. Recalculate dependent numerology results.
+3. Clearly identify charts generated using older birth details.
+4. Do not silently overwrite historical saved charts.
+5. Preserve the original chart data where historical accuracy is required.
+
+Time of birth must be collected as requested, but do not invent time-based calculations. The methodology currently defined in this prompt is date-based unless additional rules are explicitly supplied.
+
+## 6.3 My Plan / Subscription information
+
+Create a prominent subscription card inside the profile section.
+
+Display:
+
+- Current plan name.
+- Plan description.
+- Plan price and billing currency.
+- Subscription start date.
+- Subscription end/expiry date.
+- Subscription status.
+- Remaining subscription duration.
+- Payment status.
+- Next renewal date, if applicable.
+- Auto-renewal status, if applicable.
+- Subscription transaction or invoice history, if available.
+
+Provide appropriate actions:
+
+- View available plans.
+- Upgrade plan.
+- Change plan, if permitted.
+- Renew subscription.
+- View invoices or payment receipts.
+- Cancel subscription, subject to applicable rules.
+- Contact support.
+
+The subscription card must always show the actual backend subscription state.
+
+Clearly distinguish between Active, Expired, Cancelled, Suspended, Pending, and Trial statuses.
+
+## 6.4 My activity
+
+Display:
+
+- Recently generated charts.
+- Saved charts.
+- Chart-generation dates.
+- Recent account activity.
+- Login history where appropriate.
+- Subscription-related activity.
+
+## 6.5 Account settings
+
+Provide:
+
+- Edit profile.
+- Change verified email/mobile.
+- Notification preferences.
+- Accessibility preferences.
+- Logout.
+- Request account deletion.
+- Privacy policy.
+- Terms and conditions.
+- Help and support.
+
+Sensitive account operations must require appropriate verification.
+
+## 6.6 Profile privacy
+
+- Users may access only their own personal information.
+- Users may access only their own saved charts.
+- Never expose another user's private information through APIs.
+- Validate ownership on the backend.
+- Keep sensitive administrative data inaccessible to normal users.
+
+---
+
+# 7. SUBSCRIPTION AND PLAN MANAGEMENT
+
+Build a complete subscription management module.
+
+The system should support multiple subscription plans.
+
+Plan configuration should be managed centrally rather than hardcoded throughout the application.
+
+Each plan may contain:
+
+- Plan name.
+- Description.
+- Price.
+- Currency.
+- Duration.
+- Available features.
+- Chart-generation limits, if applicable.
+- Saved-chart limits, if applicable.
+- Comparison limits, if applicable.
+- Status.
+- Display order.
+
+Support:
+
+- Free plans.
+- Paid plans.
+- Trial plans.
+- Monthly plans.
+- Annual plans.
+- Custom-duration plans.
+- Complimentary plans assigned by an administrator.
+
+The system must verify subscription permissions on the backend, not merely hide frontend buttons.
+
+## 7.1 Subscription lifecycle
+
+Implement:
+
+- Pending.
+- Active.
+- Expired.
+- Cancelled.
+- Suspended.
+- Renewed.
+
+Subscription expiry must be calculated and enforced server-side.
+
+Do not assume a payment is successful based only on a frontend redirect.
+
+Use verified payment-provider webhooks and idempotent transaction processing.
+
+Keep payment integration provider-agnostic until the actual provider is selected and configured.
+
+Do not invent payment credentials or mark transactions as paid without verification.
+
+---
+
+# 8. NUMEROLOGY INPUT FORM
+
+Create a clean chart-generation form.
+
+Collect:
+
+- Full name.
+- Date of birth.
+- Time of birth.
+- Place of birth, if required by the UI.
+
+Date of birth is mandatory.
+
+Time of birth must be collected, but calculations must follow only the methodology defined below.
+
+Validate dates and prevent impossible or invalid dates.
+
+After submission, generate the numerology chart using the independent calculation engine.
+
+---
+
+# 9. NUMEROLOGY CALCULATION METHODOLOGY
+
+IMPORTANT: Follow these rules exactly.
+
+Do not substitute a different numerology system.
+
+Do not introduce arbitrary calculations from external numerology conventions.
+
+All formulas must be centralized in the numerology engine and covered by tests.
+
+## 9.1 Basic Number / Mulank
+
+Calculate by adding the digits of the day of birth until a single digit remains.
+
+Example:
+
+Date of birth: 13/08/1994
+
+1 + 3 = 4
+
+Basic Number = 4
+
+The calculation uses the birth day only.
+
+## 9.2 Destiny Number / Bhagyank
+
+Add every digit of the complete date of birth until a single digit remains.
+
+Example:
+
+13/08/1994
+
+1 + 3 + 0 + 8 + 1 + 9 + 9 + 4 = 35
+
+3 + 5 = 8
+
+Destiny Number = 8
+
+## 9.3 Natal Grid
+
+Use this fixed grid layout:
+
+```text
+3 | 1 | 9
+---------
+6 | 7 | 5
+---------
+2 | 8 | 4
+```
+
+### Natal grid calculation rules
+
+1. Take the complete date of birth.
+2. For the Natal Grid only, exclude the century digits from the birth year.
+3. Include the remaining date digits.
+4. Ignore zero.
+5. Add the Basic Number.
+6. Add the Destiny Number.
+7. Place each number in its fixed position.
+8. Preserve repeated occurrences.
+9. Leave absent numbers blank.
+10. Do not remove duplicates.
+
+Example:
+
+DOB = 13/08/1994
+
+Exclude century digits "19" from the birth year.
+
+Remaining DOB digits:
+
+1, 3, 0, 8, 9, 4
+
+Ignore zero.
+
+Add Basic Number = 4.
+
+Add Destiny Number = 8.
+
+Final digits:
+
+1, 3, 8, 9, 4, 4, 8
+
+Natal Grid:
+
+```text
+3 | 1 | 9
+---------
+  |   |
+---------
+  | 88| 44
+```
+
+The Natal Grid is permanent and does not change with years or dates.
+
+---
+
+# 10. MAHADASHA CALCULATION
+
+The first Mahadasha begins with the Basic Number.
+
+Its duration in years equals the number itself.
+
+After that, follow the normal number sequence:
+
+4 → 5 → 6 → 7 → 8 → 9 → 1 → 2 → 3
+
+The sequence must wrap around after 9.
+
+Continue until the individual reaches age 45.
+
+At age 45, restart the sequence from the original Basic Number.
+
+### Example
+
+DOB = 13/08/1994
+
+Basic Number = 4.
+
+| Mahadasha | Start Date | End Date |
+|---|---|---|
+| 4 | 13 Aug 1994 | 12 Aug 1998 |
+| 5 | 13 Aug 1998 | 12 Aug 2003 |
+| 6 | 13 Aug 2003 | 12 Aug 2009 |
+| 7 | 13 Aug 2009 | 12 Aug 2016 |
+| 8 | 13 Aug 2016 | 12 Aug 2024 |
+| 9 | 13 Aug 2024 | 12 Aug 2033 |
+| 1 | 13 Aug 2033 | 12 Aug 2034 |
+| 2 | 13 Aug 2034 | 12 Aug 2036 |
+| 3 | 13 Aug 2036 | 12 Aug 2039 |
+
+At age 45:
+
+13 Aug 2039 → Restart from 4.
+
+The active Mahadasha number must be included in the relevant annual, monthly, and daily grids.
+
+---
+
+# 11. PERSONAL YEAR / ANTARDASHA
+
+The Personal Year changes on every birthday.
+
+It remains constant from one birthday until the day before the next birthday.
+
+### Formula
+
+Add:
+
+1. All digits of the birth day.
+2. All digits of the birth month.
+3. Individual digits of the last two digits of the current calendar year.
+4. The weekday number of the birthday in that calendar year.
+
+Reduce the total to a single digit.
+
+### Weekday number mapping
+
+| Weekday | Number |
+|---|---:|
+| Sunday | 1 |
+| Monday | 2 |
+| Tuesday | 9 |
+| Wednesday | 5 |
+| Thursday | 3 |
+| Friday | 6 |
+| Saturday | 8 |
+
+Numbers 4 and 7 are not used in this weekday mapping.
+
+### Example
+
+DOB = 13/08/1994
+
+Calculate the Personal Year for 13 Aug 2026 to 12 Aug 2027.
+
+13 Aug 2026 is Thursday.
+
+1 + 3 + 8 + 2 + 6 + 3 = 23
+
+2 + 3 = 5
+
+Personal Year = 5.
+
+The Personal Year remains 5 from:
+
+13 Aug 2026 to 12 Aug 2027.
+
+---
+
+# 12. ANNUAL GRID
+
+The Annual Grid must contain:
+
+- Natal Grid numbers.
+- Active Mahadasha number.
+- Active Personal Year number.
+
+Preserve all repeated occurrences.
+
+Use separate source identification for each number.
+
+Example source categories:
+
+- Natal.
+- Mahadasha.
+- Personal Year.
+
+Do not merge or remove repeated numbers.
+
+The annual grid must display the corresponding birthday-to-birthday date range.
+
+---
+
+# 13. PRATYANTAR DASHA / MONTHLY DASHA
+
+IMPORTANT: This is not a normal calendar-month calculation.
+
+It represents periods of 8 to 72 days.
+
+### Calculation rules
+
+1. Start from the current Personal Year number.
+2. Increase the number sequentially.
+3. After 9, return to 1.
+4. Duration of each period = current sequence number × 8 days.
+5. Continue until the total reaches 360 days.
+6. The remaining 5 days of a standard 365-day year remain blank.
+7. For a leap-year interval, the remaining days may be 6.
+
+### Example
+
+Personal Year = 5.
+
+Sequence:
+
+| Number | Duration |
+|---|---:|
+| 5 | 40 days |
+| 6 | 48 days |
+| 7 | 56 days |
+| 8 | 64 days |
+| 9 | 72 days |
+| 1 | 8 days |
+| 2 | 16 days |
+| 3 | 24 days |
+| 4 | 32 days |
+
+Total = 360 days.
+
+### Example dates
+
+Annual period:
+
+13 Aug 2026 to 12 Aug 2027.
+
+| Pratyantar | Start Date | End Date |
+|---|---|---|
+| 5 | 13 Aug 2026 | 21 Sep 2026 |
+| 6 | 22 Sep 2026 | 08 Nov 2026 |
+| 7 | 09 Nov 2026 | 03 Jan 2027 |
+| 8 | 04 Jan 2027 | 08 Mar 2027 |
+| 9 | 09 Mar 2027 | 19 May 2027 |
+| 1 | 20 May 2027 | 27 May 2027 |
+| 2 | 28 May 2027 | 12 Jun 2027 |
+| 3 | 13 Jun 2027 | 06 Jul 2027 |
+| 4 | 07 Jul 2027 | 07 Aug 2027 |
+| Blank | 08 Aug 2027 | 12 Aug 2027 |
+
+Each Pratyantar period must have its own grid.
+
+The Pratyantar Grid includes:
+
+- Natal.
+- Mahadasha.
+- Personal Year.
+- Active Pratyantar.
+
+All repeated occurrences must be preserved.
+
+Use correct date arithmetic and test leap-year scenarios.
+
+---
+
+# 14. DAY LORD CALCULATION
+
+Day Lord changes every calendar day.
+
+### Formula
+
+Day Lord = Active Pratyantar Number + Weekday Number.
+
+Use the same weekday mapping defined in the Personal Year section.
+
+Example:
+
+13 Aug 2026:
+
+- Active Pratyantar = 5.
+- Thursday = 3.
+
+Day Lord = 5 + 3 = 8.
+
+The Day Lord must be recalculated for each calendar day.
+
+IMPORTANT: The exact reduction rule for sums greater than 9 has not yet been specified.
+
+Do not silently assume whether such a sum should be reduced to one digit or retained as its raw sum.
+
+Implement this rule as a clearly isolated, configurable calculation policy. Mark the unresolved behavior in documentation and tests until the methodology owner confirms it.
+
+---
+
+# 15. DAILY GRID
+
+The Daily Grid includes:
+
+- Natal.
+- Mahadasha.
+- Personal Year.
+- Pratyantar.
+- Day Lord.
+
+All numbers must be added to the correct fixed grid positions.
+
+Preserve repeated numbers.
+
+Identify the source of every number.
+
+Recalculate the Daily Grid when the selected date changes.
+
+Show:
+
+- Selected date.
+- Weekday.
+- Active Mahadasha.
+- Active Personal Year.
+- Active Pratyantar.
+- Day Lord.
+- Complete Daily Grid.
+
+---
+
+# 16. 100-YEAR NUMEROLOGY CHART
+
+Generate a complete 100-year timeline.
+
+Example:
+
+DOB = 13/08/1994.
+
+Timeline:
+
+13 Aug 1994 through 12 Aug 2094.
+
+The timeline must include:
+
+- Annual periods.
+- Mahadasha.
+- Personal Year.
+- Pratyantar periods.
+- Daily Day Lord calculations.
+- Annual Grids.
+- Pratyantar Grids.
+- Daily Grids.
+
+All annual periods must be birthday-to-birthday, not January-to-December.
+
+Allow users to navigate across the complete 100-year period.
+
+Optimize calculations so that navigating the timeline does not repeatedly perform unnecessary full-history calculations.
+
+Cache only where safe, and invalidate cached calculations when the underlying birth details or calculation policy changes.
+
+---
+
+# 17. MAIN APPLICATION NAVIGATION
+
+Create an intuitive navigation system.
+
+Main navigation must include:
+
+1. Dashboard.
+2. New Chart.
+3. Natal.
+4. Basic.
+5. Destiny.
+6. Mahadasha.
+7. Personal Year.
+8. Monthly / Pratyantar.
+9. Daily.
+10. 100-Year Timeline.
+11. Saved Charts.
+12. Compare.
+13. My Profile.
+14. Subscription / My Plan.
+15. Settings.
+16. Help & Support.
+
+Use sensible grouping so the navigation remains easy to understand.
+
+The navigation must work on desktop, tablets, and mobile devices.
+
+---
+
+# 18. NUMEROLOGY CHART INTERFACE
+
+The chart interface must be polished, professional, and easy to understand.
+
+Display the 3×3 grid using the exact fixed number positions.
+
+Each cell must:
+
+- Display all occurrences of its number.
+- Preserve repeated digits.
+- Visually distinguish number sources.
+- Remain readable on small screens.
+- Be accessible to screen readers.
+- Have a textual equivalent.
+
+Use source-specific visual treatments for:
+
+- Natal numbers.
+- Mahadasha numbers.
+- Personal Year numbers.
+- Pratyantar numbers.
+- Day Lord numbers.
+
+Do not rely on color alone to distinguish these categories.
+
+Display the applicable date or year range clearly.
+
+---
+
+# 19. CHART NAVIGATION AND CONTROLS
+
+Implement the following functional controls:
+
+- New Chart.
+- Saved Charts.
+- Show Chart.
+- Compare.
+- Back.
+- Previous Year.
+- Next Year.
+- Previous Date.
+- Next Date.
+- Save.
+- Download.
+- Export.
+
+Every control must perform its advertised action.
+
+Navigation must preserve the currently selected chart and relevant date/year context.
+
+Disable or clearly explain navigation beyond the valid 100-year timeline.
+
+---
+
+# 20. SAVED CHARTS
+
+Users must be able to save multiple numerology charts, subject to their subscription permissions.
+
+Each saved chart should include:
+
+- Chart ID.
+- Chart owner.
+- Person's name.
+- Date of birth.
+- Time of birth.
+- Place of birth, if collected.
+- Chart creation date.
+- Calculation methodology version.
+- Calculated chart data.
+- Relevant metadata.
+
+Users must be able to:
+
+- View saved charts.
+- Search saved charts.
+- Rename saved charts.
+- Open saved charts.
+- Delete saved charts.
+- Compare charts.
+- Export charts.
+
+Every saved chart must belong to its owner.
+
+Apply backend authorization checks to every operation.
+
+Preserve historical calculation information so that a methodology update does not silently change previously saved charts.
+
+---
+
+# 21. CHART COMPARISON
+
+Build a comparison feature that allows users to compare two or more charts where their subscription permits.
+
+Support comparison of:
+
+- Basic Numbers.
+- Destiny Numbers.
+- Natal Grids.
+- Mahadasha.
+- Personal Years.
+- Annual Grids.
+- Pratyantar periods.
+- Daily Grids.
+
+Clearly identify similarities and differences.
+
+Use accessible tables and textual descriptions alongside visual comparisons.
+
+Do not create unsupported personality predictions or interpretations. Keep calculations faithful to the supplied methodology.
+
+---
+
+# 22. DOWNLOAD AND EXPORT
+
+Support:
+
+- PDF export.
+- PNG export.
+- Printable chart view.
+
+Exports should include:
+
+- Person's name.
+- Date of birth.
+- Relevant chart title.
+- Selected year/date range.
+- Numerology grid.
+- Number-source legend.
+- Calculation details where appropriate.
+
+Make exported files readable and properly formatted.
+
+Ensure exported charts preserve repeated numbers and the correct 3×3 grid layout.
+
+Provide meaningful file names.
+
+Do not expose other users' data through exports.
+
+---
+
+# 23. ADMIN DASHBOARD
+
+Create a completely separate, secure administrator dashboard.
+
+Normal users must never be able to access administrator routes or APIs.
+
+## 23.1 Admin authentication
+
+The primary administrator account should be predefined during server setup.
+
+Do not hardcode actual administrator passwords in frontend code or commit them to Git.
+
+Instead:
+
+- Initialize the primary admin using server-side environment variables.
+- Store credentials securely using password hashing.
+- Keep administrator authentication separate from normal user OTP authentication.
+- Support secure password reset or credential rotation.
+- Consider MFA for administrator accounts.
+- Protect all admin routes and APIs with role-based authorization.
+
+The administrator credentials must never be exposed in browser code, API responses, logs, or public repositories.
+
+## 23.2 User management
+
+Admin should be able to:
+
+- View all registered users.
+- Search users.
+- Filter users.
+- View user profiles.
+- View registration date.
+- View account status.
+- View subscription information.
+- View saved chart counts.
+- Register/create users.
+- Edit permitted user information.
+- Activate users.
+- Deactivate users.
+- Suspend users.
+- Delete users subject to retention rules.
+- Revoke active sessions.
+- Review relevant account history.
+
+Any administrative access to private user data must be permission-controlled and audit-logged.
+
+Do not expose OTP secrets or authentication tokens to administrators.
+
+## 23.3 Subscription management
+
+Admin should be able to:
+
+- View all subscriptions.
+- Create plans.
+- Edit plans.
+- Activate subscriptions.
+- Cancel subscriptions.
+- Suspend subscriptions.
+- Extend subscriptions.
+- Change a user's plan.
+- Assign complimentary subscriptions.
+- Set custom subscription durations.
+- View expiry dates.
+- Review payment status.
+- View transaction history.
+- Manage renewal-related settings.
+
+All changes must be reflected in the user's profile and subscription section.
+
+## 23.4 Analytics
+
+Provide useful administrative analytics:
+
+- Total registered users.
+- Active users.
+- New registrations.
+- Active subscriptions.
+- Expired subscriptions.
+- Cancelled subscriptions.
+- Revenue, only where verified payment data is available.
+- Chart-generation statistics.
+- Popular application features.
+- User activity trends.
+
+## 23.5 Admin settings
+
+Provide centralized settings for:
+
+- Application configuration.
+- Subscription plans.
+- Feature availability.
+- Registration settings.
+- Notification settings.
+- Calculation policy configuration.
+- Maintenance mode.
+- Support information.
+
+## 23.6 Admin roles
+
+Design the system to support:
+
+- Super Admin.
+- Admin.
+- Support Admin.
+
+Use role-based permissions.
+
+Do not give every administrator unrestricted access by default.
+
+## 23.7 Audit logs
+
+Record important administrative actions:
+
+- Admin login.
+- User creation.
+- User modification.
+- User suspension.
+- Session revocation.
+- Subscription changes.
+- Payment-related administrative actions.
+- Access to sensitive user records.
+- System setting changes.
+
+Audit logs should record actor, action, target, timestamp, and relevant non-sensitive metadata.
+
+Prevent unauthorized modification of audit records.
+
+---
+
+# 24. UNIVERSAL DEVICE AND OPERATING SYSTEM COMPATIBILITY
+
+The application must work across major operating systems and device types.
+
+Support:
+
+- Windows.
+- macOS.
+- Linux.
+- Android.
+- iOS.
+- Tablets.
+- Desktop computers.
+- Laptops.
+- Mobile phones.
+
+Support current stable versions of:
+
+- Google Chrome.
+- Microsoft Edge.
+- Mozilla Firefox.
+- Safari.
+- Major Android browsers.
+- Major iOS browsers.
+
+## 24.1 Responsive design
+
+Use a mobile-first responsive layout.
+
+Ensure:
+
+- No horizontal overflow.
+- No broken layouts.
+- No clipped content.
+- No overlapping buttons.
+- Responsive navigation.
+- Responsive 3×3 grids.
+- Readable text at all screen sizes.
+- Touch-friendly controls.
+- Appropriate spacing.
+- Proper mobile forms.
+- Accessible dialogs and menus.
+
+## 24.2 Performance
+
+Optimize:
+
+- Initial loading.
+- Code splitting.
+- Lazy loading.
+- Asset sizes.
+- Image optimization.
+- API requests.
+- Chart calculations.
+- Rendering performance.
+
+Follow modern Core Web Vitals practices.
+
+Consider PWA functionality where it provides genuine value.
+
+Do not sacrifice accessibility or data security for performance.
+
+---
+
+# 25. ACCESSIBILITY — COMPLETE SUPPORT FOR VISUALLY IMPAIRED USERS
+
+Accessibility is a core product requirement, not an optional enhancement.
+
+Target WCAG 2.2 AA compliance.
+
+The application must be usable by:
+
+- Blind users.
+- Users with low vision.
+- Keyboard-only users.
+- Users who rely on screen readers.
+- Users who need increased text size or contrast.
+
+## 25.1 Screen reader compatibility
+
+Test and support:
+
+- NVDA.
+- JAWS.
+- Windows Narrator.
+- Apple VoiceOver.
+- Android TalkBack.
+
+Use:
+
+- Semantic HTML.
+- Correct heading hierarchy.
+- Meaningful page titles.
+- Proper form labels.
+- Accessible navigation landmarks.
+- Descriptive button names.
+- Appropriate ARIA attributes where necessary.
+- Screen-reader announcements for important state changes.
+
+Do not use ARIA unnecessarily when native HTML elements provide the correct semantics.
+
+## 25.2 Keyboard accessibility
+
+Every feature must be usable using a keyboard.
+
+Support:
+
+- Tab navigation.
+- Shift + Tab.
+- Enter.
+- Space.
+- Arrow keys where appropriate.
+- Escape for dismissible dialogs and menus.
+
+Requirements:
+
+- Visible focus indicators.
+- Logical focus order.
+- No keyboard traps.
+- Proper focus management in dialogs.
+- Keyboard-accessible dropdowns.
+- Keyboard-accessible chart controls.
+- Accessible navigation menus.
+
+## 25.3 Accessible numerology grid
+
+The 3×3 grid must not depend only on visual position or color.
+
+Provide:
+
+- A semantic table or equivalent accessible structure.
+- Cell-by-cell descriptions.
+- The number represented by each cell.
+- All repeated occurrences.
+- The source of each number.
+- Clear descriptions of empty cells.
+
+A screen reader should be able to understand the entire numerology grid without relying on visual interpretation.
+
+## 25.4 Contrast and visual accessibility
+
+Implement:
+
+- Sufficient text contrast.
+- High-contrast mode support.
+- Readable typography.
+- Scalable text.
+- Zoom support up to 200% without loss of essential content.
+- Clear focus indicators.
+- Non-color indicators for statuses and number categories.
+
+## 25.5 Motion accessibility
+
+- Respect reduced-motion preferences.
+- Avoid unnecessary animations.
+- Do not use flashing content.
+- Keep transitions subtle.
+- Never make animations essential for understanding information.
+
+## 25.6 Accessible charts and timelines
+
+Every visual chart, timeline, or graphical comparison must also provide an accessible textual or tabular equivalent.
+
+## 25.7 Accessible forms
+
+Ensure:
+
+- Proper labels.
+- Clear validation messages.
+- Accessible date selection.
+- Keyboard-accessible time selection.
+- Error announcements.
+- Instructions for required fields.
+- Correct focus placement after validation errors.
+
+## 25.8 Accessibility testing
+
+Use:
+
+- axe-core.
+- Lighthouse accessibility audits.
+- Keyboard-only testing.
+- Screen-reader testing.
+- Browser zoom testing.
+- High-contrast testing.
+
+Test both the normal user application and administrator dashboard.
+
+Do not claim WCAG compliance solely because an automated test passes. Conduct manual testing as well.
+
+---
+
+# 26. UI/UX DESIGN DIRECTION
+
+The application should look like a premium, professionally designed SaaS product.
+
+Avoid generic dashboard templates and overly decorative AI-generated designs.
+
+## Visual direction
+
+Use:
+
+- Midnight navy or charcoal foundation.
+- Elegant emerald green accents.
+- Restrained gold highlights.
+- Refined typography.
+- Clean spacing.
+- Premium cards.
+- Subtle borders.
+- Carefully designed icons.
+- Consistent visual hierarchy.
+- Subtle transitions.
+- Clear information grouping.
+
+Avoid:
+
+- Excessive glassmorphism.
+- Excessive gradients.
+- Unnecessary animations.
+- Overcrowded dashboards.
+- Oversized headings.
+- Random colors.
+- Inconsistent spacing.
+- Generic template appearance.
+
+The interface must feel polished, trustworthy, calm, and premium.
+
+Maintain consistency across:
+
+- Landing page.
+- Login.
+- Dashboard.
+- Numerology charts.
+- User profile.
+- Subscription pages.
+- Saved charts.
+- Admin dashboard.
+- Mobile interface.
+
+Design the user experience for beginners who may not understand numerology terminology.
+
+Provide short explanations and clear labels without changing the underlying calculation methodology.
+
+---
+
+# 27. DATABASE DESIGN
+
+Create a properly normalized and scalable database structure.
+
+Depending on the existing database technology, provide suitable entities/tables for:
+
+- Users.
+- User profiles.
+- Birth information.
+- Authentication sessions.
+- OTP verification records.
+- Subscription plans.
+- User subscriptions.
+- Payment transactions.
+- Saved charts.
+- Chart calculation snapshots.
+- Chart comparisons.
+- User activity.
+- Notifications.
+- Administrator accounts.
+- Administrator roles.
+- Permissions.
+- Audit logs.
+- Application settings.
+
+Define:
+
+- Primary keys.
+- Foreign keys.
+- Indexes.
+- Unique constraints.
+- Appropriate timestamps.
+- Ownership relationships.
+- Data validation.
+- Deletion and retention policies.
+
+Do not store unnecessary sensitive data.
+
+Use database migrations or the framework's equivalent schema management.
+
+---
+
+# 28. API AND BACKEND SECURITY
+
+Build clean, documented API endpoints.
+
+Requirements:
+
+- Authentication middleware.
+- Authorization middleware.
+- Role-based access control.
+- Subscription entitlement checks.
+- Request validation.
+- Rate limiting.
+- Centralized error handling.
+- Secure database queries.
+- Ownership checks.
+- Input sanitization.
+- Audit logging.
+- Secure environment configuration.
+
+Never trust the frontend for:
+
+- User identity.
+- Subscription status.
+- Admin permissions.
+- Session validity.
+- Chart ownership.
+- Payment status.
+
+Verify all critical conditions on the backend.
+
+---
+
+# 29. TESTING AND QUALITY ASSURANCE
+
+Testing is mandatory.
+
+## 29.1 Numerology unit tests
+
+Test every calculation independently.
+
+Include:
+
+- Different birth dates.
+- Repeated digits.
+- Zero handling.
+- Century-digit exclusion.
+- Birthdays at the end of months.
+- Leap years.
+- Birthday-to-birthday transitions.
+- Mahadasha sequence transitions.
+- Age-45 restart.
+- Pratyantar period durations.
+- 360-day total.
+- Remaining blank days.
+- Day Lord weekday mapping.
+- Unresolved Day Lord reduction policy.
+- Daily grid repetition and source tracking.
+
+Use the provided example DOB of 13/08/1994 as a baseline test case.
+
+The expected results in this document must be represented in automated tests.
+
+If a test reveals an inconsistency in date arithmetic or an ambiguity in the methodology, document it instead of silently changing the formula.
+
+## 29.2 Authentication tests
+
+Test:
+
+- OTP login.
+- Invalid OTP.
+- Expired OTP.
+- OTP resend.
+- Rate limiting.
+- Single-device login.
+- Previous session revocation.
+- 30-day session expiry.
+- Logout.
+- Unauthorized access.
+
+## 29.3 Subscription tests
+
+Test:
+
+- Active subscription.
+- Expired subscription.
+- Cancelled subscription.
+- Suspended subscription.
+- Plan upgrade.
+- Plan changes.
+- Payment verification.
+- Restricted features.
+
+## 29.4 Profile tests
+
+Test:
+
+- Profile viewing.
+- Profile editing.
+- Contact verification.
+- Birth information updates.
+- Chart history preservation.
+- Subscription information accuracy.
+- Unauthorized profile access.
+
+## 29.5 Admin tests
+
+Test:
+
+- Admin authentication.
+- Role permissions.
+- User management.
+- Subscription management.
+- Session revocation.
+- Audit logs.
+- Unauthorized admin API access.
+
+## 29.6 Interface tests
+
+Test:
+
+- Desktop.
+- Tablet.
+- Mobile.
+- Keyboard navigation.
+- Screen readers.
+- High contrast.
+- Browser compatibility.
+- Chart rendering.
+- Export functionality.
+
+---
+
+# 30. DEVELOPMENT EXECUTION PLAN
+
+Implement the application in clearly defined phases.
+
+Do not attempt to generate the entire application in one unstructured code-writing operation.
+
+## Phase 1 — Repository analysis and architecture
+
+- Inspect repository.
+- Document existing stack.
+- Identify reusable code.
+- Define module boundaries.
+- Plan database architecture.
+- Identify configuration requirements.
+
+## Phase 2 — UI foundation
+
+- Design system.
+- Responsive layouts.
+- Navigation.
+- Shared components.
+- Landing page.
+- Login screens.
+
+## Phase 3 — Authentication
+
+- OTP delivery.
+- OTP verification.
+- Session management.
+- Single-device enforcement.
+- 30-day expiry.
+- Logout.
+
+## Phase 4 — Numerology engine
+
+Implement and test:
+
+- Basic Number.
+- Destiny Number.
+- Natal Grid.
+- Mahadasha.
+- Personal Year.
+- Annual Grid.
+- Pratyantar.
+- Day Lord.
+- Daily Grid.
+- 100-year timeline.
+
+Do not connect untested calculations to the main UI.
+
+## Phase 5 — Main user application
+
+- Dashboard.
+- Chart generation.
+- Numerology pages.
+- Timeline navigation.
+- Saved charts.
+- Comparison.
+- Download/export.
+
+## Phase 6 — User profile and subscriptions
+
+- My Profile.
+- Personal information.
+- Birth information.
+- My Plan.
+- Subscription history.
+- Account settings.
+- Plan permissions.
+- Subscription lifecycle.
+
+## Phase 7 — Admin dashboard
+
+- Admin authentication.
+- Role-based permissions.
+- User management.
+- Subscription management.
+- Analytics.
+- Settings.
+- Audit logs.
+
+## Phase 8 — Accessibility and compatibility
+
+- WCAG 2.2 AA review.
+- Screen reader testing.
+- Keyboard navigation.
+- Mobile optimization.
+- Browser testing.
+- Operating system compatibility.
+
+## Phase 9 — Final QA
+
+- Unit tests.
+- Integration tests.
+- End-to-end tests.
+- Security review.
+- Performance review.
+- Database review.
+- Export verification.
+- Responsive testing.
+- Accessibility testing.
+
+## Phase 10 — Deployment readiness
+
+- Production environment configuration.
+- Secure secrets management.
+- Database migration instructions.
+- Backup strategy.
+- Logging and monitoring.
+- Error reporting.
+- Deployment documentation.
+
+Do not deploy, publish, delete production data, or make irreversible changes without my explicit approval.
+
+---
+
+# 31. DOCUMENTATION REQUIREMENTS
+
+Create and maintain:
+
+- README.md.
+- Architecture documentation.
+- Folder structure documentation.
+- Database schema documentation.
+- API documentation.
+- Numerology calculation documentation.
+- Authentication documentation.
+- Subscription documentation.
+- Admin permissions documentation.
+- Environment variable example file.
+- Local setup instructions.
+- Testing instructions.
+- Deployment instructions.
+- Troubleshooting guide.
+
+A beginner developer should be able to understand where each feature is located and how to debug it.
+
+For every major module, explain:
+
+1. What the module does.
+2. Where its files are located.
+3. Which services it uses.
+4. Which APIs it calls.
+5. Which database entities it accesses.
+6. How to test it.
+7. How to modify or extend it.
+
+---
+
+# 32. FINAL ACCEPTANCE CRITERIA
+
+The project will be considered complete only when:
+
+1. OTP authentication works.
+2. One account cannot maintain multiple active sessions.
+3. Sessions expire after a maximum of 30 days.
+4. Users have a working dashboard.
+5. Users have a dedicated My Profile tab.
+6. Profile information is accurate and editable where permitted.
+7. Subscription information is visible and accurate.
+8. Subscription restrictions are enforced on the backend.
+9. All numerology calculations follow the supplied methodology.
+10. The 3×3 grid preserves repeated numbers.
+11. The 100-year timeline works correctly.
+12. Saved charts work.
+13. Chart comparison works.
+14. PDF and PNG exports work.
+15. Admin dashboard is secure.
+16. Admin can manage users and subscriptions.
+17. Admin actions are audit-logged.
+18. Application works across major operating systems and devices.
+19. Accessibility has been tested against WCAG 2.2 AA requirements.
+20. All major modules have automated tests.
+21. Documentation is complete.
+22. The codebase follows modular architecture.
+23. Fixing or extending one feature does not unnecessarily break unrelated modules.
+24. No fake data, nonfunctional buttons, or misleading success messages remain.
+25. No secrets or administrator credentials are exposed in frontend code or source control.
+
+---
+
+# 33. FINAL INSTRUCTIONS TO THE AI CODING AGENT
+
+Act as a senior software architect, full-stack engineer, security engineer, UI/UX designer, database architect, and QA engineer.
+
+Your priority is not simply to generate code quickly. Your priority is to build a reliable, maintainable, secure, accessible, and scalable application.
+
+Follow these rules throughout development:
+
+- Think modularly before coding.
+- Inspect existing code before modifying it.
+- Never place the entire application in one file.
+- Never mix UI and numerology calculation logic.
+- Never duplicate calculation formulas.
+- Never bypass backend security checks.
+- Never hardcode secrets.
+- Never use fake subscription or payment data.
+- Never silently change the supplied numerology methodology.
+- Never sacrifice accessibility for visual design.
+- Never break existing functionality without a clear reason.
+- Write tests alongside implementation.
+- Keep the project easy to understand for a beginner developer.
+
+**Implementation workflow:**
+
+1. First provide a concise repository analysis.
+2. Present the proposed architecture and development phases.
+3. Identify any missing configuration or external credentials.
+4. Identify unresolved methodology questions.
+5. Start implementation module by module.
+6. After completing each module, run its tests.
+7. Report the files created or modified.
+8. Explain how the module works.
+9. Report any remaining issues.
+10. Wait for my verification before proceeding to the next major phase when the work is being carried out interactively.
+
+Do not ask me to repeat requirements already provided in this prompt.
+
+If a detail is genuinely unspecified, identify it clearly and ask only the necessary question rather than inventing a rule.
+
+**FINAL GOAL:** Deliver a premium, professional, fully modular numerology SaaS platform that can be maintained and expanded for years without turning into a difficult-to-debug codebase.
+
+
+
+# MASTER PROMPT ADDENDUM — FINAL CALCULATION AND ADMIN CREDENTIAL REQUIREMENTS
+
+## 1. DAY LORD CALCULATION — FINALIZED
+
+The Day Lord calculation rule is now confirmed.
+
+Formula:
+
+Day Lord = Active Pratyantar Number + Weekday Number.
+
+After adding both numbers, reduce the result to a single digit by repeatedly adding its digits until only one digit remains.
+
+Example:
+
+- Active Pratyantar = 8
+- Weekday Number = 6
+- Sum = 8 + 6 = 14
+- Reduction = 1 + 4 = 5
+- Final Day Lord = 5
+
+Another example:
+
+- Active Pratyantar = 5
+- Weekday Number = 3
+- Sum = 8
+- Final Day Lord = 8
+
+Implement this rule in the independent numerology calculation engine.
+
+Create a reusable function for single-digit reduction and use it wherever required.
+
+Add automated tests for sums below 10, equal to 10, and greater than 10.
+
+This rule is finalized and must not be treated as an unresolved configuration.
+
+## 2. PREDEFINED ADMINISTRATOR CREDENTIALS
+
+Create a separate, editable, server-side configuration file for the primary administrator credentials.
+
+Use the administrator email and initial password supplied by the project owner.
+
+### Required configuration
+
+Use these environment variable names:
+
+```env
+ADMIN_EMAIL=pratham.garg2801@gmail.com
+ADMIN_PASSWORD=<initial password supplied by the project owner>
+```
+
+Store these values in the backend's private `.env` file.
+
+Create a separate `.env.example` containing placeholder values only.
+
+### Important implementation rules
+
+1. The `.env` file must be located in the backend configuration area or backend root, according to the existing project structure.
+2. Add `.env` to `.gitignore`.
+3. Never commit the actual administrator password to GitHub.
+4. Never expose administrator credentials through frontend code, browser bundles, API responses, or logs.
+5. Read credentials through the backend environment configuration.
+6. On initial setup, create the primary administrator account if it does not already exist.
+7. Hash the password using a secure password-hashing algorithm before storing it in the database.
+8. Never store the administrator password in plaintext in the database.
+9. Do not reset an existing administrator's password every time the server restarts.
+10. Allow the owner to change the credentials later by editing the private configuration and following a documented secure rotation process.
+11. Validate that the initial administrator account has the Super Admin role.
+12. Keep administrator authentication separate from normal user OTP authentication.
+13. Require a fresh authentication process when administrator credentials are changed.
+14. Record administrator login and security-related actions in audit logs.
+
+### File organization example
+
+```text
+backend/
+├── config/
+│   ├── environment.js
+│   └── admin-config.js
+│
+├── .env
+├── .env.example
+└── .gitignore
+```
+
+`admin-config.js` should read the credentials from server-side environment variables. It must not contain the actual password.
+
+Document exactly where the owner can edit the administrator email and password in the future.
+
+If required environment variables are missing, fail safely with a clear setup error rather than creating an insecure default administrator account.

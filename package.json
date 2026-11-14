@@ -1,0 +1,24 @@
+{
+  "name": "premium-numerology-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production-ready, modular, accessible SaaS numerology platform",
+  "workspaces": [
+    "shared",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "build": "npm --workspace=frontend run build",
+    "start": "npm --workspace=backend run start",
+    "test:engine": "npm --workspace=shared test",
+    "test:backend": "npm --workspace=backend test",
+    "test:all": "npm test --workspaces --if-present",
+    "dev:backend": "npm --workspace=backend run dev",
+    "dev:frontend": "npm --workspace=frontend run dev",
+    "build:all": "npm run build --workspaces --if-present"
+  },
+  "keywords": ["numerology", "saas", "modular"],
+  "author": "Antigravity Development Team",
+  "license": "UNLICENSED"
+}
