@@ -8,8 +8,7 @@
     "build": "tsc",
     "test": "node --experimental-strip-types --test tests/numerology.node-test.ts"
   },
-  "devDependencies": {
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+  "dependencies": {
+    "typescript": "^5.7.2"
   }
 }
