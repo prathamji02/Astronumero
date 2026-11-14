@@ -25,10 +25,10 @@ export const NewChartForm: React.FC<Props> = ({
   onOpenAuth,
   isLoggedIn,
 }) => {
-  const [fullName, setFullName] = useState('Pratham Master');
-  const [dateOfBirth, setDateOfBirth] = useState('1994-08-13');
-  const [timeOfBirth, setTimeOfBirth] = useState('14:30');
-  const [placeOfBirth, setPlaceOfBirth] = useState('New Delhi, India');
+  const [fullName, setFullName] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [timeOfBirth, setTimeOfBirth] = useState('');
+  const [placeOfBirth, setPlaceOfBirth] = useState('');
   // Default to today's date dynamically (e.g. 2026-11-14)
   const [targetDate, setTargetDate] = useState(getTodayDate());
 
@@ -92,27 +92,13 @@ export const NewChartForm: React.FC<Props> = ({
 
   return (
     <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-2xl p-6 sm:p-8 shadow-sm max-w-3xl mx-auto">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 pb-4 border-b border-slate-200 dark:border-navy-800">
-        <div>
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            Calculate Numerology Chart
-          </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Enter birth details to generate Natal, Mahadasha, Personal Year, Monthly Pratyantar, and Daily Grid.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            setFullName('Pratham Master');
-            setDateOfBirth('1994-08-13');
-            setTargetDate(getTodayDate());
-          }}
-          className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-navy-950 border border-slate-200 dark:border-navy-800 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:border-emerald-500 transition"
-        >
-          Baseline DOB (13/08/1994)
-        </button>
+      <div className="mb-6 pb-4 border-b border-slate-200 dark:border-navy-800">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          Calculate Numerology Chart
+        </h2>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          Enter birth details to generate Natal, Mahadasha, Personal Year, Monthly Pratyantar, and Daily Grid.
+        </p>
       </div>
 
       {error && (
@@ -138,7 +124,7 @@ export const NewChartForm: React.FC<Props> = ({
               required
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="e.g. Pratham Master"
+              placeholder="Enter full name"
               className="w-full px-3 py-2 bg-slate-50 dark:bg-navy-950 border border-slate-300 dark:border-navy-700 rounded-xl text-slate-900 dark:text-white text-xs focus:border-emerald-500 outline-none"
             />
           </div>

@@ -54,27 +54,8 @@ export const App: React.FC = () => {
     }
   };
 
-  // Loads chart with dynamic today's date (2026-11-14)
-  const loadInitialChart = async () => {
-    try {
-      const today = getTodayDate();
-      const res = await apiRequest<{ success: boolean; data: CalculatedData }>('/numerology/calculate', {
-        method: 'POST',
-        body: JSON.stringify({
-          fullName: 'Pratham Master',
-          dateOfBirth: '1994-08-13',
-          targetDate: today,
-        }),
-      });
-      setCalculatedData(res.data);
-    } catch (err) {
-      console.error('Failed to load chart:', err);
-    }
-  };
-
   useEffect(() => {
     checkSession();
-    loadInitialChart();
 
     const handleRevocation = (e: any) => {
       setUser(null);
@@ -135,73 +116,100 @@ export const App: React.FC = () => {
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-6">
         {/* VIEW 1: OVERVIEW / DASHBOARD */}
-        {currentTab === 'dashboard' && calculatedData && (
-          <div className="space-y-5">
-            {/* Minimalist Sub-header */}
-            <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-              <div>
-                <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-                  {calculatedData.birthInput.fullName}
+        {currentTab === 'dashboard' && (
+          calculatedData ? (
+            <div className="space-y-5">
+              {/* Minimalist Sub-header */}
+              <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div>
+                  <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+                    {calculatedData.birthInput.fullName}
+                  </h1>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Birth Date: <strong className="font-mono text-slate-800 dark:text-slate-200">{calculatedData.birthInput.dateOfBirth}</strong> | Analysis Date: <strong className="font-mono text-emerald-600 dark:text-emerald-400">{calculatedData.targetDate}</strong>
+                  </p>
+                </div>
+
+                {/* Action buttons */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCalculatedData(null)}
+                    className="px-3 py-1.5 bg-slate-100 dark:bg-navy-950 border border-slate-200 dark:border-navy-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-semibold rounded-lg transition"
+                  >
+                    + New Person
+                  </button>
+                  <button
+                    onClick={handlePrint}
+                    className="px-3 py-1.5 bg-slate-100 dark:bg-navy-950 border border-slate-200 dark:border-navy-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-medium rounded-lg transition flex items-center gap-1.5"
+                    title="Print / Save PDF"
+                  >
+                    <Printer className="w-3.5 h-3.5" /> Print
+                  </button>
+                </div>
+              </div>
+
+              {/* 4 Major Number Blocks at top of PDF View */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl p-3 sm:p-4 text-center shadow-sm">
+                  <span className="text-[10px] sm:text-[11px] font-bold text-rose-500 uppercase tracking-wide block">
+                    Basic (Mulank)
+                  </span>
+                  <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1 block">
+                    {calculatedData.natal.basicNumber}
+                  </span>
+                </div>
+                <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl p-3 sm:p-4 text-center shadow-sm">
+                  <span className="text-[10px] sm:text-[11px] font-bold text-emerald-500 uppercase tracking-wide block">
+                    Destiny (Bhagyank)
+                  </span>
+                  <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1 block">
+                    {calculatedData.natal.destinyNumber}
+                  </span>
+                </div>
+                <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl p-3 sm:p-4 text-center shadow-sm">
+                  <span className="text-[10px] sm:text-[11px] font-bold text-purple-500 uppercase tracking-wide block">
+                    Active Mahadasha
+                  </span>
+                  <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1 block">
+                    {calculatedData.mahadasha.active.number}
+                  </span>
+                </div>
+                <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl p-3 sm:p-4 text-center shadow-sm">
+                  <span className="text-[10px] sm:text-[11px] font-bold text-amber-500 uppercase tracking-wide block">
+                    Personal Year
+                  </span>
+                  <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1 block">
+                    {calculatedData.personalYear.personalYearNumber}
+                  </span>
+                </div>
+              </div>
+
+              {/* PDF View (Multi-Chart Overview with 3-Level Drill-Down) */}
+              <MultiChartOverview
+                data={calculatedData}
+                onOpenCompare={() => setCurrentTab('compare')}
+              />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="text-center py-4">
+                <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                  AstroNumerology Calculation Engine
                 </h1>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Birth Date: <strong className="font-mono text-slate-800 dark:text-slate-200">{calculatedData.birthInput.dateOfBirth}</strong> | Analysis Date: <strong className="font-mono text-emerald-600 dark:text-emerald-400">{calculatedData.targetDate}</strong>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
+                  Enter person details below to generate their complete Natal, Mahadasha, Personal Year, Monthly Pratyantar, and Daily charts.
                 </p>
               </div>
-
-              {/* Action buttons */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handlePrint}
-                  className="px-3 py-1.5 bg-slate-100 dark:bg-navy-950 border border-slate-200 dark:border-navy-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-medium rounded-lg transition flex items-center gap-1.5"
-                  title="Print / Save PDF"
-                >
-                  <Printer className="w-3.5 h-3.5" /> Print
-                </button>
-              </div>
+              <NewChartForm
+                onCalculated={(data) => {
+                  setCalculatedData(data);
+                }}
+                subscription={subscription}
+                onOpenAuth={() => setAuthModalOpen(true)}
+                isLoggedIn={!!user}
+              />
             </div>
-
-            {/* 4 Major Number Blocks at top of PDF View */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl p-3 sm:p-4 text-center shadow-sm">
-                <span className="text-[10px] sm:text-[11px] font-bold text-rose-500 uppercase tracking-wide block">
-                  Basic (Mulank)
-                </span>
-                <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1 block">
-                  {calculatedData.natal.basicNumber}
-                </span>
-              </div>
-              <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl p-3 sm:p-4 text-center shadow-sm">
-                <span className="text-[10px] sm:text-[11px] font-bold text-emerald-500 uppercase tracking-wide block">
-                  Destiny (Bhagyank)
-                </span>
-                <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1 block">
-                  {calculatedData.natal.destinyNumber}
-                </span>
-              </div>
-              <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl p-3 sm:p-4 text-center shadow-sm">
-                <span className="text-[10px] sm:text-[11px] font-bold text-purple-500 uppercase tracking-wide block">
-                  Active Mahadasha
-                </span>
-                <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1 block">
-                  {calculatedData.mahadasha.active.number}
-                </span>
-              </div>
-              <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl p-3 sm:p-4 text-center shadow-sm">
-                <span className="text-[10px] sm:text-[11px] font-bold text-amber-500 uppercase tracking-wide block">
-                  Personal Year
-                </span>
-                <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1 block">
-                  {calculatedData.personalYear.personalYearNumber}
-                </span>
-              </div>
-            </div>
-
-            {/* PDF View (Multi-Chart Overview with 3-Level Drill-Down) */}
-            <MultiChartOverview
-              data={calculatedData}
-              onOpenCompare={() => setCurrentTab('compare')}
-            />
-          </div>
+          )
         )}
 
         {/* VIEW 2: NEW CHART */}
@@ -349,6 +357,22 @@ export const App: React.FC = () => {
             data={calculatedData}
             subscription={subscription}
           />
+        )}
+
+        {/* Empty State when detailed calculation tab is selected without chart data */}
+        {['natal', 'mahadasha', 'personal_year', 'pratyantar', 'daily', 'timeline'].includes(currentTab) && !calculatedData && (
+          <div className="text-center py-16 bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-2xl max-w-lg mx-auto p-6 shadow-sm">
+            <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">No Active Chart</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+              Please enter birth details first on the Overview tab to generate this calculation.
+            </p>
+            <button
+              onClick={() => setCurrentTab('dashboard')}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-sm transition"
+            >
+              Enter Birth Details
+            </button>
+          </div>
         )}
 
         {/* VIEW 9: SAVED CHARTS */}

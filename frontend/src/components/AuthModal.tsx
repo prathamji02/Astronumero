@@ -312,7 +312,7 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onLoginSuccess }) 
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="e.g. Pratham Garg"
+                  placeholder="Enter your full name"
                   className="w-full px-4 py-2.5 bg-navy-950 border border-navy-700 rounded-xl text-white text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
                 />
               </div>
@@ -347,7 +347,7 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onLoginSuccess }) 
                 required
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="pratham.garg2801@gmail.com"
+                placeholder="Enter administrator email"
                 className="w-full px-4 py-2.5 bg-navy-950 border border-navy-700 rounded-xl text-white text-sm focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none"
               />
             </div>
@@ -367,10 +367,6 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onLoginSuccess }) 
                 />
                 <Lock className="w-4 h-4 text-slate-500 absolute right-3.5 top-3" />
               </div>
-            </div>
-
-            <div className="text-[11px] text-slate-400 bg-navy-950/60 p-3 rounded-xl border border-navy-800">
-              🔑 Predefined Super Admin: <code>pratham.garg2801@gmail.com</code> (Credentials configured in server <code>.env</code>).
             </div>
 
             <button
