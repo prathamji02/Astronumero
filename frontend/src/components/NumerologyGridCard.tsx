@@ -130,30 +130,30 @@ export const NumerologyGridCard: React.FC<Props> = ({ grid, title, subtitle, dat
               }`}
             >
               {/* Header: fixed position number watermark */}
-              <div className="flex justify-between items-center text-xs font-mono">
+              <div className="flex justify-between items-center text-xs sm:text-sm font-mono">
                 <span className="text-slate-500 font-semibold" title={`Fixed Grid Position ${cell.positionNumber}`}>
                   #{cell.positionNumber}
                 </span>
                 {hasNumbers && (
-                  <span className="text-[10px] text-emerald-400 font-medium px-1.5 py-0.5 rounded bg-emerald-950/80 border border-emerald-900">
+                  <span className="text-[11px] sm:text-xs text-emerald-400 font-semibold px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-900">
                     ×{cell.items.length}
                   </span>
                 )}
               </div>
 
               {/* Digits Display: preserves all repeated occurrences (e.g. 44, 888) */}
-              <div className="text-center my-auto">
+              <div className="text-center my-auto py-1">
                 {hasNumbers ? (
-                  <div className="text-2xl sm:text-3xl font-extrabold tracking-wider text-white">
+                  <div className="text-3xl sm:text-4xl font-extrabold tracking-wider text-white">
                     {cell.items.map((i) => i.value).join('')}
                   </div>
                 ) : (
-                  <div className="text-slate-600 text-sm font-medium tracking-widest">—</div>
+                  <div className="text-slate-500 text-base font-medium tracking-widest">—</div>
                 )}
               </div>
 
               {/* Source breakdown badges */}
-              <div className="flex flex-wrap gap-1 justify-center min-h-[22px]">
+              <div className="flex flex-wrap gap-1.5 justify-center min-h-[24px]">
                 {cell.items.map((item, idx) => {
                   const meta = SOURCE_LABELS[item.source] || {
                     label: item.source,
@@ -162,7 +162,7 @@ export const NumerologyGridCard: React.FC<Props> = ({ grid, title, subtitle, dat
                   return (
                     <span
                       key={idx}
-                      className={`text-[9px] sm:text-[10px] font-semibold px-1.5 py-0.5 rounded border ${meta.badgeClass}`}
+                      className={`text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded border ${meta.badgeClass}`}
                       title={`${item.value} from ${meta.label} (${meta.desc})`}
                     >
                       {meta.label}

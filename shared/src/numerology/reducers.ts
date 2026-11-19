@@ -42,6 +42,45 @@ export function formatDate(date: Date): string {
 }
 
 /**
+ * Formats any Date object or ISO / YYYY-MM-DD date string to DD-MM-YYYY format.
+ */
+export function formatToDDMMYYYY(dateInput: Date | string): string {
+  if (!dateInput) return '';
+  if (dateInput instanceof Date) {
+    const y = dateInput.getFullYear();
+    const m = String(dateInput.getMonth() + 1).padStart(2, '0');
+    const d = String(dateInput.getDate()).padStart(2, '0');
+    return `${d}-${m}-${y}`;
+  }
+  const clean = String(dateInput).split('T')[0];
+  const parts = clean.split('-');
+  if (parts.length === 3) {
+    if (parts[0].length === 4) {
+      // YYYY-MM-DD -> DD-MM-YYYY
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    } else if (parts[2].length === 4) {
+      // already DD-MM-YYYY
+      return `${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}-${parts[2]}`;
+    }
+  }
+  return clean;
+}
+
+/**
+ * Converts DD-MM-YYYY string to standard YYYY-MM-DD for backend APIs.
+ */
+export function formatToYYYYMMDD(dateInput: string): string {
+  if (!dateInput) return '';
+  const clean = dateInput.trim();
+  const parts = clean.split('-');
+  if (parts.length === 3 && parts[2].length === 4) {
+    // DD-MM-YYYY -> YYYY-MM-DD
+    return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+  }
+  return clean;
+}
+
+/**
  * Parses a YYYY-MM-DD string into a safe Date object (at 12:00:00 local to avoid timezone drift).
  */
 export function parseDate(dateStr: string): Date {

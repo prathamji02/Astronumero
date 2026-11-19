@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { apiRequest, getStoredSessionToken, setStoredSessionToken } from './services/api.ts';
 import type { NavigationTab, User, UserSubscription, CalculatedData } from './types/index.ts';
-import { Navbar } from './components/Navbar.tsx';
-import { NumerologyGridCard } from './components/NumerologyGridCard.tsx';
+import { LeftNavbar } from './components/LeftNavbar.tsx';
+import { AstroChartModal } from './components/AstroChartModal.tsx';
 import { MultiChartOverview } from './components/MultiChartOverview.tsx';
 import { AuthModal } from './components/AuthModal.tsx';
 import { ProfileTab } from './components/ProfileTab.tsx';
@@ -11,23 +11,23 @@ import { SavedChartsView } from './components/SavedChartsView.tsx';
 import { CompareView } from './components/CompareView.tsx';
 import { AdminPortalView } from './components/AdminPortalView.tsx';
 import { NewChartForm } from './components/NewChartForm.tsx';
-import {
-  Calendar,
-  Clock,
-  Printer,
-  ShieldAlert,
-  Info,
-  Grid,
-  Layers,
-} from 'lucide-react';
+import { AppAlerts } from './components/common/AppAlerts.tsx';
+import { SaveChartActionBar } from './components/common/SaveChartActionBar.tsx';
+import { CalculationDetailViews } from './components/views/CalculationDetailViews.tsx';
 
-const getTodayDate = () => {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-};
+function formatToDDMMYYYY(dateStr: string): string {
+  if (!dateStr) return '';
+  const clean = String(dateStr).split('T')[0].trim();
+  const parts = clean.split('-');
+  if (parts.length === 3) {
+    if (parts[0].length === 4) {
+      return `${parts[2].padStart(2, '0')}-${parts[1].padStart(2, '0')}-${parts[0]}`;
+    } else if (parts[2].length === 4) {
+      return `${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}-${parts[2]}`;
+    }
+  }
+  return clean;
+}
 
 export const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<NavigationTab>('dashboard');
@@ -36,8 +36,41 @@ export const App: React.FC = () => {
   const [calculatedData, setCalculatedData] = useState<CalculatedData | null>(null);
 
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [astroModalOpen, setAstroModalOpen] = useState(false);
   const [preselectedCompareId, setPreselectedCompareId] = useState<string | null>(null);
   const [revocationNotice, setRevocationNotice] = useState<string | null>(null);
+
+  // Save Chart State
+  const [isSavingChart, setIsSavingChart] = useState(false);
+  const [chartSavedStatus, setChartSavedStatus] = useState(false);
+  const [saveBannerMessage, setSaveBannerMessage] = useState<string | null>(null);
+
+  // Screen reader accessible announcement state
+  const [srAnnouncement, setSrAnnouncement] = useState('');
+
+  // Light / Dark Theme State
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    const saved = localStorage.getItem('talkto_theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+    return 'dark';
+  });
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
+    }
+    localStorage.setItem('talkto_theme', theme);
+  }, [theme]);
+
+  const handleToggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    setSrAnnouncement(`Theme switched to ${next} mode.`);
+  };
 
   const checkSession = async () => {
     const token = getStoredSessionToken();
@@ -77,352 +110,231 @@ export const App: React.FC = () => {
     setUser(null);
     setSubscription(null);
     setCurrentTab('dashboard');
+    setSrAnnouncement('Logged out successfully.');
   };
 
   const handlePrint = () => {
     window.print();
   };
 
+  const handleSaveActiveChart = async () => {
+    if (!calculatedData) return;
+    if (!user) {
+      setAuthModalOpen(true);
+      return;
+    }
+
+    try {
+      setIsSavingChart(true);
+      await apiRequest('/charts', {
+        method: 'POST',
+        body: JSON.stringify({
+          personName: calculatedData.birthInput.fullName,
+          dateOfBirth: calculatedData.birthInput.dateOfBirth,
+          timeOfBirth: calculatedData.birthInput.timeOfBirth || undefined,
+          placeOfBirth: calculatedData.birthInput.placeOfBirth || undefined,
+          notes: `Analysis Date: ${formatToDDMMYYYY(calculatedData.targetDate)}`,
+          calculationData: calculatedData,
+        }),
+      });
+      setChartSavedStatus(true);
+      const msg = `Chart for "${calculatedData.birthInput.fullName}" saved successfully to your Saved Charts!`;
+      setSaveBannerMessage(msg);
+      setSrAnnouncement(msg);
+      setTimeout(() => setChartSavedStatus(false), 5000);
+      setTimeout(() => setSaveBannerMessage(null), 6000);
+    } catch (err: any) {
+      alert(err.message || 'Failed to save chart.');
+    } finally {
+      setIsSavingChart(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-navy-950 text-slate-800 dark:text-slate-100 flex flex-col font-sans">
-      {/* Top Navigation */}
-      <Navbar
+      {/* Accessible Skip Link for Screen Readers (NVDA / JAWS / Narrator / TalkBack / VoiceOver) */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-emerald-600 focus:text-white focus:rounded-xl focus:shadow-2xl focus:outline-none focus:ring-2 focus:ring-white font-bold text-xs"
+      >
+        Skip to main content
+      </a>
+
+      {/* Left-Side Navigation Ribbon */}
+      <LeftNavbar
         currentTab={currentTab}
-        onSelectTab={setCurrentTab}
+        onSelectTab={(tab) => {
+          setCurrentTab(tab);
+          setSrAnnouncement(`Navigated to ${tab.replace('_', ' ')}`);
+        }}
         user={user}
         subscription={subscription}
         onOpenAuth={() => setAuthModalOpen(true)}
         onLogout={handleLogout}
+        onOpenAstroModal={() => setAstroModalOpen(true)}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
       />
 
-      {/* Single-Device Revocation Notice */}
-      {revocationNotice && (
-        <div className="bg-amber-950/90 border-b border-amber-800 px-4 py-2 text-amber-200 text-xs flex items-center justify-between">
-          <div className="flex items-center gap-2 max-w-5xl mx-auto">
-            <ShieldAlert className="w-4 h-4 flex-shrink-0 text-gold-400" />
-            <span>
-              <strong>Session Notice:</strong> {revocationNotice}
-            </span>
-          </div>
-          <button
-            onClick={() => setRevocationNotice(null)}
-            className="text-amber-400 hover:text-white text-xs font-bold"
-          >
-            Dismiss
-          </button>
-        </div>
-      )}
+      {/* Main Content Area - Offset on desktop by the left-hand ribbon width */}
+      <div className="flex-1 lg:ml-64 xl:ml-72 min-h-screen flex flex-col">
+        {/* System Announcements & Alerts (Revocation Notice, Save Confirmation, SR Live Region) */}
+        <AppAlerts
+          revocationNotice={revocationNotice}
+          onDismissRevocation={() => setRevocationNotice(null)}
+          saveBannerMessage={saveBannerMessage}
+          onDismissSaveBanner={() => setSaveBannerMessage(null)}
+          srAnnouncement={srAnnouncement}
+        />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-6">
-        {/* VIEW 1: OVERVIEW / DASHBOARD */}
-        {currentTab === 'dashboard' && (
-          calculatedData ? (
-            <div className="space-y-5">
-              {/* Minimalist Sub-header */}
-              <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                <div>
-                  <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-                    {calculatedData.birthInput.fullName}
+        {/* Main Content Container */}
+        <main
+          id="main-content"
+          tabIndex={-1}
+          role="main"
+          className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-6 outline-none"
+        >
+          {/* VIEW 1: OVERVIEW / DASHBOARD */}
+          {currentTab === 'dashboard' && (
+            calculatedData ? (
+              <div className="space-y-5">
+                {/* Save Chart Action Bar and 4 Major Numbers */}
+                <SaveChartActionBar
+                  calculatedData={calculatedData}
+                  onNewPerson={() => setCalculatedData(null)}
+                  onSaveChart={handleSaveActiveChart}
+                  isSavingChart={isSavingChart}
+                  chartSavedStatus={chartSavedStatus}
+                  onPrint={handlePrint}
+                  formatDate={formatToDDMMYYYY}
+                />
+
+                {/* PDF View (Multi-Chart Overview with 3-Level Drill-Down) */}
+                <MultiChartOverview
+                  data={calculatedData}
+                  onOpenCompare={() => setCurrentTab('compare')}
+                />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="text-center py-4">
+                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                    TalktoNakshatra Calculation Engine
                   </h1>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Birth Date: <strong className="font-mono text-slate-800 dark:text-slate-200">{calculatedData.birthInput.dateOfBirth}</strong> | Analysis Date: <strong className="font-mono text-emerald-600 dark:text-emerald-400">{calculatedData.targetDate}</strong>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
+                    Enter person details below to generate their complete Natal, Mahadasha, Personal Year, Monthly Pratyantar, and Daily charts.
                   </p>
                 </div>
-
-                {/* Action buttons */}
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCalculatedData(null)}
-                    className="px-3 py-1.5 bg-slate-100 dark:bg-navy-950 border border-slate-200 dark:border-navy-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-semibold rounded-lg transition"
-                  >
-                    + New Person
-                  </button>
-                  <button
-                    onClick={handlePrint}
-                    className="px-3 py-1.5 bg-slate-100 dark:bg-navy-950 border border-slate-200 dark:border-navy-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-medium rounded-lg transition flex items-center gap-1.5"
-                    title="Print / Save PDF"
-                  >
-                    <Printer className="w-3.5 h-3.5" /> Print
-                  </button>
-                </div>
+                <NewChartForm
+                  onCalculated={(data) => {
+                    setCalculatedData(data);
+                    setSrAnnouncement(`Chart calculated successfully for ${data.birthInput.fullName}. Basic Number is ${data.natal.basicNumber}, Destiny Number is ${data.natal.destinyNumber}.`);
+                  }}
+                  subscription={subscription}
+                  onOpenAuth={() => setAuthModalOpen(true)}
+                  isLoggedIn={!!user}
+                />
               </div>
+            )
+          )}
 
-              {/* 4 Major Number Blocks at top of PDF View */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl p-3 sm:p-4 text-center shadow-sm">
-                  <span className="text-[10px] sm:text-[11px] font-bold text-rose-500 uppercase tracking-wide block">
-                    Basic (Mulank)
-                  </span>
-                  <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1 block">
-                    {calculatedData.natal.basicNumber}
-                  </span>
-                </div>
-                <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl p-3 sm:p-4 text-center shadow-sm">
-                  <span className="text-[10px] sm:text-[11px] font-bold text-emerald-500 uppercase tracking-wide block">
-                    Destiny (Bhagyank)
-                  </span>
-                  <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1 block">
-                    {calculatedData.natal.destinyNumber}
-                  </span>
-                </div>
-                <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl p-3 sm:p-4 text-center shadow-sm">
-                  <span className="text-[10px] sm:text-[11px] font-bold text-purple-500 uppercase tracking-wide block">
-                    Active Mahadasha
-                  </span>
-                  <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1 block">
-                    {calculatedData.mahadasha.active.number}
-                  </span>
-                </div>
-                <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl p-3 sm:p-4 text-center shadow-sm">
-                  <span className="text-[10px] sm:text-[11px] font-bold text-amber-500 uppercase tracking-wide block">
-                    Personal Year
-                  </span>
-                  <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1 block">
-                    {calculatedData.personalYear.personalYearNumber}
-                  </span>
-                </div>
-              </div>
-
-              {/* PDF View (Multi-Chart Overview with 3-Level Drill-Down) */}
-              <MultiChartOverview
-                data={calculatedData}
-                onOpenCompare={() => setCurrentTab('compare')}
-              />
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="text-center py-4">
-                <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                  AstroNumerology Calculation Engine
-                </h1>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
-                  Enter person details below to generate their complete Natal, Mahadasha, Personal Year, Monthly Pratyantar, and Daily charts.
-                </p>
-              </div>
-              <NewChartForm
-                onCalculated={(data) => {
-                  setCalculatedData(data);
-                }}
-                subscription={subscription}
-                onOpenAuth={() => setAuthModalOpen(true)}
-                isLoggedIn={!!user}
-              />
-            </div>
-          )
-        )}
-
-        {/* VIEW 2: NEW CHART */}
-        {currentTab === 'new_chart' && (
-          <NewChartForm
-            onCalculated={(data) => {
-              setCalculatedData(data);
-              setCurrentTab('dashboard');
-            }}
-            subscription={subscription}
-            onOpenAuth={() => setAuthModalOpen(true)}
-            isLoggedIn={!!user}
-          />
-        )}
-
-        {/* VIEW 3: NATAL GRID */}
-        {currentTab === 'natal' && calculatedData && (
-          <div className="space-y-4 max-w-3xl mx-auto">
-            <NumerologyGridCard
-              grid={calculatedData.natal.grid}
-              title="Permanent Natal Grid"
-              subtitle={`${calculatedData.birthInput.fullName} (DOB: ${calculatedData.birthInput.dateOfBirth})`}
+          {/* VIEW 2: NEW CHART */}
+          {currentTab === 'new_chart' && (
+            <NewChartForm
+              onCalculated={(data) => {
+                setCalculatedData(data);
+                setCurrentTab('dashboard');
+                setSrAnnouncement(`Chart calculated successfully for ${data.birthInput.fullName}.`);
+              }}
+              subscription={subscription}
+              onOpenAuth={() => setAuthModalOpen(true)}
+              isLoggedIn={!!user}
             />
+          )}
 
-            <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl p-5 text-xs text-slate-600 dark:text-slate-300 space-y-2">
-              <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                <Info className="w-4 h-4 text-emerald-500" />
-                Natal Grid Rules (Section 9.3)
-              </h3>
-              <p>• Century digits excluded: <strong>"{calculatedData.natal.centuryDigitsExcluded}"</strong> (retained year digits: <strong>"{calculatedData.natal.remainingYearDigits}"</strong>).</p>
-              <p>• Birth digits included: <strong>[{calculatedData.natal.includedDateDigits.join(', ')}]</strong> (zeros ignored).</p>
-              <p>• Basic Number: <strong className="text-rose-500">{calculatedData.natal.basicNumber}</strong> | Destiny Number: <strong className="text-emerald-500">{calculatedData.natal.destinyNumber}</strong>.</p>
-              <p>• Final Natal Digits: <strong>[{calculatedData.natal.finalNatalDigits.map((i) => i.value).join(', ')}]</strong>.</p>
-            </div>
-          </div>
-        )}
-
-        {/* VIEW 4: MAHADASHA */}
-        {currentTab === 'mahadasha' && calculatedData && (
-          <div className="space-y-4 max-w-4xl mx-auto">
-            <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl p-4 flex justify-between items-center text-xs">
-              <div>
-                <h2 className="font-bold text-sm text-slate-900 dark:text-white">Mahadasha Calculation (Section 10)</h2>
-                <p className="text-slate-500 dark:text-slate-400">Begins with Basic Number ({calculatedData.natal.basicNumber}), duration = number, restarts at age 45.</p>
-              </div>
-              <span className="px-2.5 py-1 rounded-lg bg-purple-100 dark:bg-purple-950 border border-purple-300 dark:border-purple-800 text-purple-700 dark:text-purple-300 font-bold font-mono">
-                Active: Number {calculatedData.mahadasha.active.number}
-              </span>
-            </div>
-
-            <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl overflow-hidden shadow-sm">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 dark:bg-navy-950 text-slate-500 uppercase font-mono text-[10px] border-b border-slate-200 dark:border-navy-800">
-                  <tr>
-                    <th className="py-2.5 px-3">Period</th>
-                    <th className="py-2.5 px-3">Mahadasha</th>
-                    <th className="py-2.5 px-3">Duration</th>
-                    <th className="py-2.5 px-3">Age Range</th>
-                    <th className="py-2.5 px-3">Date Range</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-navy-800/60 font-mono text-slate-700 dark:text-slate-300">
-                  {calculatedData.mahadasha.periods.slice(0, 12).map((p, idx) => (
-                    <tr key={idx} className={p.number === calculatedData.mahadasha.active.number ? 'bg-purple-50 dark:bg-purple-950/40 font-bold' : ''}>
-                      <td className="py-2.5 px-3">#{idx + 1}</td>
-                      <td className="py-2.5 px-3">
-                        Mahadasha {p.number} {p.isRestartAt45 && <span className="text-emerald-500 font-sans font-normal">(Age 45 Restart)</span>}
-                      </td>
-                      <td className="py-2.5 px-3">{p.durationYears} Years</td>
-                      <td className="py-2.5 px-3">Age {p.ageAtStart}–{p.ageAtEnd}</td>
-                      <td className="py-2.5 px-3">{p.startDate} to {p.endDate}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* VIEW 5: PERSONAL YEAR */}
-        {currentTab === 'personal_year' && calculatedData && (
-          <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl p-6 max-w-xl mx-auto space-y-4">
-            <h2 className="text-base font-bold text-slate-900 dark:text-white">Personal Year Calculation (Section 11)</h2>
-            <div className="text-4xl font-black text-amber-500 py-3 text-center bg-slate-50 dark:bg-navy-950 rounded-xl border border-slate-200 dark:border-navy-800 font-mono">
-              Personal Year: {calculatedData.personalYear.personalYearNumber}
-            </div>
-            <div className="text-xs text-slate-600 dark:text-slate-300 space-y-1.5 font-mono bg-slate-50 dark:bg-navy-950/60 p-3 rounded-lg border border-slate-200 dark:border-navy-800">
-              <div>Period: {calculatedData.personalYear.startDate} to {calculatedData.personalYear.endDate}</div>
-              <div>Birthday Weekday: {calculatedData.personalYear.birthdayWeekday} (Value: {calculatedData.personalYear.birthdayWeekdayNumber})</div>
-              <div>Formula Sum: {calculatedData.personalYear.calculationSum} → {calculatedData.personalYear.personalYearNumber}</div>
-            </div>
-          </div>
-        )}
-
-        {/* VIEW 6: PRATYANTAR */}
-        {currentTab === 'pratyantar' && calculatedData && (
-          <div className="space-y-4 max-w-4xl mx-auto">
-            <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl p-4 text-xs">
-              <h2 className="font-bold text-sm text-slate-900 dark:text-white">Monthly / Pratyantar Dasha (Section 13)</h2>
-              <p className="text-slate-500 dark:text-slate-400">9 periods of (Number × 8 days) = 360 days total + blank remainder days.</p>
-            </div>
-
-            <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-xl overflow-hidden shadow-sm">
-              <table className="w-full text-left text-xs font-mono">
-                <thead className="bg-slate-50 dark:bg-navy-950 text-slate-500 uppercase text-[10px] border-b border-slate-200 dark:border-navy-800">
-                  <tr>
-                    <th className="py-2.5 px-3">#</th>
-                    <th className="py-2.5 px-3">Pratyantar</th>
-                    <th className="py-2.5 px-3">Duration</th>
-                    <th className="py-2.5 px-3">Date Range</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-navy-800/60 text-slate-700 dark:text-slate-300">
-                  {calculatedData.pratyantar.periods.map((p, idx) => (
-                    <tr key={idx} className={p.isBlank ? 'bg-slate-50 dark:bg-navy-950 italic text-slate-400' : ''}>
-                      <td className="py-2 px-3">#{p.periodOrder}</td>
-                      <td className="py-2 px-3">
-                        {p.isBlank ? 'Blank Remainder' : `Pratyantar ${p.pratyantarNumber}`}
-                      </td>
-                      <td className="py-2 px-3">{p.durationDays} Days</td>
-                      <td className="py-2 px-3">{p.startDate} to {p.endDate}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* VIEW 7: DAILY GRID */}
-        {currentTab === 'daily' && calculatedData && (
-          <div className="space-y-4 max-w-3xl mx-auto">
-            <NumerologyGridCard
-              grid={calculatedData.dailyGrid.dailyGrid}
-              title="Daily Grid (Section 15)"
-              subtitle={`Date: ${calculatedData.dailyGrid.date} (${calculatedData.dailyGrid.weekday}) | Day Lord: ${calculatedData.dayLord?.dayLordNumber || 'None'}`}
-              dateRange={calculatedData.dailyGrid.date}
+          {/* VIEW 3-7: DETAILED NUMEROLOGY CALCULATION VIEWS (Natal, Mahadasha, Personal Year, Pratyantar, Daily Grid) */}
+          {['natal', 'mahadasha', 'personal_year', 'pratyantar', 'daily'].includes(currentTab) && calculatedData && (
+            <CalculationDetailViews
+              currentTab={currentTab}
+              calculatedData={calculatedData}
+              formatDate={formatToDDMMYYYY}
             />
-          </div>
-        )}
+          )}
 
-        {/* VIEW 8: 100-YEAR TIMELINE */}
-        {currentTab === 'timeline' && calculatedData && (
-          <TimelineView
-            data={calculatedData}
-            subscription={subscription}
-          />
-        )}
-
-        {/* Empty State when detailed calculation tab is selected without chart data */}
-        {['natal', 'mahadasha', 'personal_year', 'pratyantar', 'daily', 'timeline'].includes(currentTab) && !calculatedData && (
-          <div className="text-center py-16 bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-2xl max-w-lg mx-auto p-6 shadow-sm">
-            <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">No Active Chart</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-              Please enter birth details first on the Overview tab to generate this calculation.
-            </p>
-            <button
-              onClick={() => setCurrentTab('dashboard')}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-sm transition"
-            >
-              Enter Birth Details
-            </button>
-          </div>
-        )}
-
-        {/* VIEW 9: SAVED CHARTS */}
-        {currentTab === 'saved_charts' && (
-          <SavedChartsView
-            onLoadChart={(data) => {
-              setCalculatedData(data);
-              setCurrentTab('dashboard');
-            }}
-            onOpenCompare={(id) => {
-              setPreselectedCompareId(id);
-              setCurrentTab('compare');
-            }}
-          />
-        )}
-
-        {/* VIEW 10: COMPARE */}
-        {currentTab === 'compare' && (
-          <CompareView
-            subscription={subscription}
-            preselectedChartId={preselectedCompareId}
-          />
-        )}
-
-        {/* VIEW 11: PROFILE */}
-        {currentTab === 'profile' && (
-          user ? (
-            <ProfileTab
-              user={user}
-              onRefreshUser={checkSession}
+          {/* VIEW 8: 100-YEAR TIMELINE */}
+          {currentTab === 'timeline' && calculatedData && (
+            <TimelineView
+              data={calculatedData}
+              subscription={subscription}
             />
-          ) : (
-            <div className="text-center py-12 bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-2xl max-w-md mx-auto p-6">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">Sign In to View Profile</h2>
+          )}
+
+          {/* Empty State when detailed calculation tab is selected without chart data */}
+          {['natal', 'mahadasha', 'personal_year', 'pratyantar', 'daily', 'timeline'].includes(currentTab) && !calculatedData && (
+            <div className="text-center py-16 bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-2xl max-w-lg mx-auto p-6 shadow-sm">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">No Active Chart</h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-                Access your personal numbers, subscription plan, and active device sessions.
+                Please enter birth details first on the Overview tab to generate this calculation.
               </p>
               <button
-                onClick={() => setAuthModalOpen(true)}
-                className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-sm transition"
+                onClick={() => setCurrentTab('dashboard')}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-sm transition"
               >
-                Sign In with OTP
+                Enter Birth Details
               </button>
             </div>
-          )
-        )}
+          )}
 
-        {/* VIEW 12: ADMIN */}
-        {currentTab === 'admin' && <AdminPortalView />}
-      </main>
+          {/* VIEW 9: SAVED CHARTS */}
+          {currentTab === 'saved_charts' && (
+            <SavedChartsView
+              onLoadChart={(data) => {
+                setCalculatedData(data);
+                setCurrentTab('dashboard');
+                setSrAnnouncement(`Loaded chart for ${data.birthInput.fullName}.`);
+              }}
+              onOpenCompare={(id) => {
+                setPreselectedCompareId(id);
+                setCurrentTab('compare');
+              }}
+            />
+          )}
+
+          {/* VIEW 10: COMPARE */}
+          {currentTab === 'compare' && (
+            <CompareView
+              subscription={subscription}
+              preselectedChartId={preselectedCompareId}
+            />
+          )}
+
+          {/* VIEW 11: PROFILE */}
+          {currentTab === 'profile' && (
+            user ? (
+              <ProfileTab
+                user={user}
+                onRefreshUser={checkSession}
+              />
+            ) : (
+              <div className="text-center py-12 bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 rounded-2xl max-w-md mx-auto p-6">
+                <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">Sign In to View Profile</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                  Access your personal numbers, subscription plan, and active device sessions.
+                </p>
+                <button
+                  onClick={() => setAuthModalOpen(true)}
+                  className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-sm transition"
+                >
+                  Sign In with OTP
+                </button>
+              </div>
+            )
+          )}
+
+          {/* VIEW 12: ADMIN */}
+          {currentTab === 'admin' && <AdminPortalView />}
+        </main>
+      </div>
 
       {/* Auth Modal */}
       <AuthModal
@@ -432,7 +344,14 @@ export const App: React.FC = () => {
           setUser(u);
           setSubscription(s);
           checkSession();
+          setSrAnnouncement(`Signed in successfully as ${u.fullName}.`);
         }}
+      />
+
+      {/* Highlighted Astro Chart Coming Soon Modal (Requirement 8) */}
+      <AstroChartModal
+        isOpen={astroModalOpen}
+        onClose={() => setAstroModalOpen(false)}
       />
     </div>
   );

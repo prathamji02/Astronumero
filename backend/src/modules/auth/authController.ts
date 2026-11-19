@@ -34,7 +34,8 @@ authRouter.post('/otp/request', async (req: Request, res: Response): Promise<voi
     message: result.message,
     channel: result.channel,
     identifier: result.identifier,
-    devCode: result.devCode, // populated in dev mode for ease of automated and manual testing
+    deliveredLive: result.deliveredLive,
+    devCode: result.devCode,
   });
 });
 

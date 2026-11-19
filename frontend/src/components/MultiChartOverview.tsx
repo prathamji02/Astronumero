@@ -18,14 +18,20 @@ interface Props {
   onOpenCompare?: () => void;
 }
 
-// Formats YYYY-MM-DD as D/M/YYYY without leading zeros (e.g. 13/8/2020)
-function formatDMY(dateStr: string): string {
-  const parts = dateStr.split('-');
-  if (parts.length !== 3) return dateStr;
-  const y = parts[0];
-  const m = parseInt(parts[1], 10);
-  const d = parseInt(parts[2], 10);
-  return `${d}/${m}/${y}`;
+// Formats any YYYY-MM-DD or date string as strict DD-MM-YYYY
+function formatToDDMMYYYY(dateStr: string): string {
+  if (!dateStr) return '';
+  const clean = String(dateStr).split('T')[0].trim();
+  const parts = clean.split('-');
+  if (parts.length === 3) {
+    if (parts[0].length === 4) {
+      // YYYY-MM-DD -> DD-MM-YYYY
+      return `${parts[2].padStart(2, '0')}-${parts[1].padStart(2, '0')}-${parts[0]}`;
+    } else if (parts[2].length === 4) {
+      return `${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}-${parts[2]}`;
+    }
+  }
+  return clean;
 }
 
 export const MultiChartOverview: React.FC<Props> = ({ data, onOpenCompare }) => {
@@ -112,7 +118,7 @@ export const MultiChartOverview: React.FC<Props> = ({ data, onOpenCompare }) => 
         const grid = buildNumerologyGrid(items);
         return {
           period: p,
-          title: `${formatDMY(p.startDate)} - ${formatDMY(p.endDate)}`,
+          title: `${formatToDDMMYYYY(p.startDate)} - ${formatToDDMMYYYY(p.endDate)}`,
           grid: grid as any,
           pratyantarNumber: p.pratyantarNumber,
         };
@@ -164,7 +170,7 @@ export const MultiChartOverview: React.FC<Props> = ({ data, onOpenCompare }) => 
 
       dailyCards.push({
         dateStr: curDateStr,
-        title: formatDMY(curDateStr),
+        title: formatToDDMMYYYY(curDateStr),
         grid: grid as any,
         dayLord: dayLordCalc.dayLordNumber,
       });

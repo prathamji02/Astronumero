@@ -3,6 +3,20 @@ import { apiRequest } from '../services/api.ts';
 import type { CalculatedData, UserSubscription } from '../types/index.ts';
 import { Clock, Calendar, ChevronRight, Filter } from 'lucide-react';
 
+function formatToDDMMYYYY(dateStr: string): string {
+  if (!dateStr) return '';
+  const clean = String(dateStr).split('T')[0].trim();
+  const parts = clean.split('-');
+  if (parts.length === 3) {
+    if (parts[0].length === 4) {
+      return `${parts[2].padStart(2, '0')}-${parts[1].padStart(2, '0')}-${parts[0]}`;
+    } else if (parts[2].length === 4) {
+      return `${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}-${parts[2]}`;
+    }
+  }
+  return clean;
+}
+
 interface Props {
   data: CalculatedData;
   subscription?: UserSubscription | null;
@@ -76,7 +90,7 @@ export const TimelineView: React.FC<Props> = ({ data }) => {
             100-Year Life Timeline (Ages 0 to 99)
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Calculated for <strong className="text-slate-800 dark:text-white">{data.birthInput.fullName}</strong> (DOB: {data.birthInput.dateOfBirth})
+            Calculated for <strong className="text-slate-800 dark:text-white">{data.birthInput.fullName}</strong> (DOB: {formatToDDMMYYYY(data.birthInput.dateOfBirth)})
           </p>
         </div>
 
@@ -135,7 +149,7 @@ export const TimelineView: React.FC<Props> = ({ data }) => {
                     <div>
                       <span className="font-semibold block">{item.calendarYear}</span>
                       <span className="text-[10px] text-slate-400">
-                        {item.startDate} to {item.endDate}
+                        {formatToDDMMYYYY(item.startDate)} to {formatToDDMMYYYY(item.endDate)}
                       </span>
                     </div>
                   </div>
@@ -167,8 +181,8 @@ export const TimelineView: React.FC<Props> = ({ data }) => {
                     Age {activeItem.age} ({activeItem.calendarYear})
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Period: <strong className="text-slate-800 dark:text-slate-200">{activeItem.startDate}</strong> to{' '}
-                    <strong className="text-slate-800 dark:text-slate-200">{activeItem.endDate}</strong>
+                    Period: <strong className="text-slate-800 dark:text-slate-200">{formatToDDMMYYYY(activeItem.startDate)}</strong> to{' '}
+                    <strong className="text-slate-800 dark:text-slate-200">{formatToDDMMYYYY(activeItem.endDate)}</strong>
                   </p>
                 </div>
 
@@ -219,7 +233,7 @@ export const TimelineView: React.FC<Props> = ({ data }) => {
                           </td>
                           <td className="py-2 px-3">{p.durationDays} days</td>
                           <td className="py-2 px-3 text-slate-500 dark:text-slate-400">
-                            {p.startDate} to {p.endDate}
+                            {formatToDDMMYYYY(p.startDate)} to {formatToDDMMYYYY(p.endDate)}
                           </td>
                         </tr>
                       ))}

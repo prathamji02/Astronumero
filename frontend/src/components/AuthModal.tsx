@@ -19,8 +19,9 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onLoginSuccess }) 
   
   const [step, setStep] = useState<'request' | 'verify'>('request');
   const [loading, setLoading] = useState(false);
+  const [receivedDevCode, setReceivedDevCode] = useState<string | null>(null);
+  const [deliveredLive, setDeliveredLive] = useState<boolean>(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
-  const [devCodeAvailable, setDevCodeAvailable] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -33,9 +34,10 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onLoginSuccess }) 
 
     setLoading(true);
     setMessage(null);
+    setReceivedDevCode(null);
 
     try {
-      const res = await apiRequest<{ success: boolean; message: string; devCode?: string }>(
+      const res = await apiRequest<{ success: boolean; message: string; devCode?: string; deliveredLive?: boolean }>(
         '/auth/otp/request',
         {
           method: 'POST',
@@ -44,10 +46,14 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onLoginSuccess }) 
       );
 
       setStep('verify');
-      setMessage({ text: res.message, type: 'success' });
-      if (res.devCode) {
-        setDevCodeAvailable(res.devCode);
-      }
+      setReceivedDevCode(res.devCode || null);
+      setDeliveredLive(Boolean(res.deliveredLive));
+      setMessage({
+        text: res.deliveredLive
+          ? `A 6-digit OTP code has been dispatched to ${identifier.trim()}. Please check your email inbox and spam folder.`
+          : `Verification code generated for ${identifier.trim()}. If email delivery is delayed, use the verification code below to log in.`,
+        type: 'success',
+      });
     } catch (err: any) {
       setMessage({ text: err.message || 'Failed to request OTP code.', type: 'error' });
     } finally {
@@ -149,6 +155,8 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onLoginSuccess }) 
             onClick={() => {
               setMode('otp');
               setStep('request');
+              setReceivedDevCode(null);
+              setOtpCode('');
               setMessage(null);
             }}
             className={`flex-1 py-2 text-xs font-bold rounded-lg transition ${
@@ -161,6 +169,8 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onLoginSuccess }) 
             type="button"
             onClick={() => {
               setMode('admin');
+              setReceivedDevCode(null);
+              setOtpCode('');
               setMessage(null);
             }}
             className={`flex-1 py-2 text-xs font-bold rounded-lg transition ${
@@ -206,25 +216,6 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onLoginSuccess }) 
               <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
             )}
             <div>{message.text}</div>
-          </div>
-        )}
-
-        {/* Dev OTP Quick Helper */}
-        {devCodeAvailable && step === 'verify' && mode === 'otp' && (
-          <div className="mb-4 p-3 bg-navy-950 border border-emerald-500/40 rounded-xl flex items-center justify-between">
-            <div>
-              <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block">
-                Dev Environment OTP
-              </span>
-              <span className="text-lg font-mono font-black text-white">{devCodeAvailable}</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setOtpCode(devCodeAvailable)}
-              className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg"
-            >
-              Auto-fill Code
-            </button>
           </div>
         )}
 
@@ -289,6 +280,24 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onLoginSuccess }) 
             </form>
           ) : (
             <form onSubmit={handleVerifyOtp} className="space-y-4">
+              {receivedDevCode && (
+                <div className="p-3 rounded-xl bg-navy-950 border border-emerald-500/40 text-xs flex items-center justify-between gap-3 shadow-inner">
+                  <div>
+                    <span className="text-slate-400">Verification Code:</span>{' '}
+                    <code className="text-amber-300 font-mono font-bold text-sm bg-navy-900 px-2 py-0.5 rounded border border-amber-500/40">
+                      {receivedDevCode}
+                    </code>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setOtpCode(receivedDevCode)}
+                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-[11px] transition shadow"
+                  >
+                    Auto-fill
+                  </button>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1.5">
                   Enter 6-Digit Code
@@ -303,6 +312,16 @@ export const AuthModal: React.FC<Props> = ({ isOpen, onClose, onLoginSuccess }) 
                   className="w-full px-4 py-2.5 bg-navy-950 border border-navy-700 rounded-xl text-white text-center font-mono text-xl tracking-widest focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
                 />
               </div>
+
+              {receivedDevCode && otpCode !== receivedDevCode && (
+                <button
+                  type="button"
+                  onClick={() => setOtpCode(receivedDevCode)}
+                  className="w-full text-center text-[11px] text-amber-400 hover:text-amber-300 underline font-medium"
+                >
+                  Didn't receive email? Click here to fill code ({receivedDevCode})
+                </button>
+              )}
 
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1.5">

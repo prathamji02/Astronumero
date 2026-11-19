@@ -1,4 +1,4 @@
-import { describe, it, before } from 'node:test';
+import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../src/app.ts';
 import { getDb } from '../src/database/connection.ts';
@@ -242,4 +242,81 @@ describe('5. Numerology Calculations & Saved Charts via API', () => {
     assert.equal(timelineRes.status, 200);
     assert.equal(timelineRes.body.timeline.timelineYears.length, 100);
   });
+
+  it('allows Admin to register a new paid client via POST /api/admin/users/create', async () => {
+    // 1. Login as Admin
+    const adminLogin = await testRequest(app, 'POST', '/api/auth/admin/login', {
+      body: {
+        email: 'pratham.garg2801@gmail.com',
+        password: 'AdminAstro2026!Secure',
+      },
+    });
+    assert.equal(adminLogin.status, 200);
+    const adminToken = adminLogin.body.sessionToken;
+
+    // 2. Register new paid client
+    const clientEmail = `paid_client_${Date.now()}@example.com`;
+    const regRes = await testRequest(app, 'POST', '/api/admin/users/create', {
+      headers: { Authorization: `Bearer ${adminToken}` },
+      body: {
+        fullName: 'Rohan Sharma',
+        email: clientEmail,
+        planSlug: 'pro-monthly',
+        durationDays: 30,
+        paymentNote: 'Paid via UPI ref #998877',
+      },
+    });
+
+    assert.equal(regRes.status, 200);
+    assert.equal(regRes.body.success, true);
+    assert.equal(regRes.body.user.fullName, 'Rohan Sharma');
+    assert.equal(regRes.body.user.email, clientEmail);
+    assert.equal(regRes.body.user.planName, 'Numerology Pro Monthly');
+
+    // 3. Register existing client again - MUST return 400 error USER_EXISTS
+    const reRegRes = await testRequest(app, 'POST', '/api/admin/users/create', {
+      headers: { Authorization: `Bearer ${adminToken}` },
+      body: {
+        fullName: 'Rohan Sharma Duplicate',
+        email: clientEmail,
+        planSlug: 'premium-annual',
+        durationDays: 365,
+        paymentNote: 'Renewed Annual Plan',
+      },
+    });
+
+    assert.equal(reRegRes.status, 400);
+    assert.equal(reRegRes.body.error, 'USER_EXISTS');
+    assert.ok(reRegRes.body.message.includes('already registered'));
+
+    // 4. Verify all registered users are listed in User Accounts Management
+    const usersListRes = await testRequest(app, 'GET', '/api/admin/users', {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    assert.equal(usersListRes.status, 200);
+    assert.ok(Array.isArray(usersListRes.body.users));
+    const foundUser = usersListRes.body.users.find((u: any) => u.email === clientEmail);
+    assert.ok(foundUser);
+    assert.equal(foundUser.full_name, 'Rohan Sharma');
+    assert.equal(foundUser.current_plan_name, 'Numerology Pro Monthly');
+
+    // 5. Verify Active OTPs feed endpoint
+    const otpsRes = await testRequest(app, 'GET', '/api/admin/active-otps', {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    assert.equal(otpsRes.status, 200);
+    assert.ok(Array.isArray(otpsRes.body.otps));
+    assert.ok(otpsRes.body.otps.length > 0);
+  });
+});
+
+after(() => {
+  const db = getDb();
+  db.exec("DELETE FROM users WHERE email LIKE '%example.com%' OR email LIKE '%test%'");
+  db.exec("DELETE FROM user_subscriptions WHERE user_id NOT IN (SELECT id FROM users)");
+  db.exec("DELETE FROM auth_sessions WHERE user_id NOT IN (SELECT id FROM users)");
+  db.exec("DELETE FROM user_profiles WHERE user_id NOT IN (SELECT id FROM users)");
+  db.exec("DELETE FROM saved_charts WHERE user_id NOT IN (SELECT id FROM users)");
+  db.exec("DELETE FROM otp_codes WHERE identifier LIKE '%example.com%' OR identifier LIKE '%test%'");
+  db.exec("DELETE FROM sent_emails WHERE recipient_email LIKE '%example.com%' OR recipient_email LIKE '%test%'");
 });

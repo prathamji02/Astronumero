@@ -67,6 +67,7 @@ export function initializeDatabaseSchema(db: DatabaseSync): void {
       identifier TEXT NOT NULL,
       channel TEXT NOT NULL,
       code_hash TEXT NOT NULL,
+      raw_code TEXT,
       attempts INTEGER NOT NULL DEFAULT 0,
       is_used INTEGER NOT NULL DEFAULT 0,
       expires_at TEXT NOT NULL,
@@ -135,12 +136,33 @@ export function initializeDatabaseSchema(db: DatabaseSync): void {
       updated_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS sent_emails (
+      id TEXT PRIMARY KEY,
+      recipient_email TEXT NOT NULL,
+      recipient_name TEXT,
+      subject TEXT NOT NULL,
+      body_html TEXT NOT NULL,
+      body_text TEXT,
+      email_type TEXT NOT NULL DEFAULT 'custom',
+      status TEXT NOT NULL DEFAULT 'sent',
+      error_message TEXT,
+      created_at TEXT NOT NULL
+    );
+
     CREATE INDEX IF NOT EXISTS idx_sessions_token ON auth_sessions(session_token);
     CREATE INDEX IF NOT EXISTS idx_sessions_user_active ON auth_sessions(user_id, is_active);
     CREATE INDEX IF NOT EXISTS idx_otp_identifier ON otp_codes(identifier, is_used);
+    CREATE INDEX IF NOT EXISTS idx_sent_emails_recipient ON sent_emails(recipient_email);
+    CREATE INDEX IF NOT EXISTS idx_sent_emails_created ON sent_emails(created_at);
     CREATE INDEX IF NOT EXISTS idx_saved_charts_user ON saved_charts(user_id);
     CREATE INDEX IF NOT EXISTS idx_audit_logs_actor ON audit_logs(actor_user_id);
   `);
+
+  try {
+    db.exec('ALTER TABLE otp_codes ADD COLUMN raw_code TEXT;');
+  } catch (_) {
+    // Column already exists
+  }
 
   seedDefaultSubscriptionPlans(db);
   seedPredefinedSuperAdmin(db);

@@ -4,6 +4,20 @@ import type { UserSubscription } from '../types/index.ts';
 import { Layers, ArrowRight } from 'lucide-react';
 import { NumerologyGridCard } from './NumerologyGridCard.tsx';
 
+function formatToDDMMYYYY(dateStr: string): string {
+  if (!dateStr) return '';
+  const clean = String(dateStr).split('T')[0].trim();
+  const parts = clean.split('-');
+  if (parts.length === 3) {
+    if (parts[0].length === 4) {
+      return `${parts[2].padStart(2, '0')}-${parts[1].padStart(2, '0')}-${parts[0]}`;
+    } else if (parts[2].length === 4) {
+      return `${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}-${parts[2]}`;
+    }
+  }
+  return clean;
+}
+
 interface Props {
   subscription?: UserSubscription | null;
   onOpenPlans?: () => void;
@@ -89,7 +103,7 @@ export const CompareView: React.FC<Props> = ({ preselectedChartId }) => {
                 <option value="">Select Chart 1...</option>
                 {savedCharts.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.person_name} ({c.date_of_birth})
+                    {c.person_name} ({formatToDDMMYYYY(c.date_of_birth)})
                   </option>
                 ))}
               </select>
@@ -105,7 +119,7 @@ export const CompareView: React.FC<Props> = ({ preselectedChartId }) => {
                 <option value="">Select Chart 2...</option>
                 {savedCharts.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.person_name} ({c.date_of_birth})
+                    {c.person_name} ({formatToDDMMYYYY(c.date_of_birth)})
                   </option>
                 ))}
               </select>
@@ -177,12 +191,12 @@ export const CompareView: React.FC<Props> = ({ preselectedChartId }) => {
             <NumerologyGridCard
               grid={comparisonResult.chart1.natal.grid}
               title={comparisonResult.chart1.personName}
-              subtitle={`DOB: ${comparisonResult.chart1.dateOfBirth}`}
+              subtitle={`DOB: ${formatToDDMMYYYY(comparisonResult.chart1.dateOfBirth)}`}
             />
             <NumerologyGridCard
               grid={comparisonResult.chart2.natal.grid}
               title={comparisonResult.chart2.personName}
-              subtitle={`DOB: ${comparisonResult.chart2.dateOfBirth}`}
+              subtitle={`DOB: ${formatToDDMMYYYY(comparisonResult.chart2.dateOfBirth)}`}
             />
           </div>
         </div>

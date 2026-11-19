@@ -3,6 +3,20 @@ import { apiRequest } from '../services/api.ts';
 import type { CalculatedData } from '../types/index.ts';
 import { Bookmark, Search, Trash2, Edit3, ArrowRight, Eye, Calendar, Sparkles } from 'lucide-react';
 
+function formatToDDMMYYYY(dateStr: string): string {
+  if (!dateStr) return '';
+  const clean = String(dateStr).split('T')[0].trim();
+  const parts = clean.split('-');
+  if (parts.length === 3) {
+    if (parts[0].length === 4) {
+      return `${parts[2].padStart(2, '0')}-${parts[1].padStart(2, '0')}-${parts[0]}`;
+    } else if (parts[2].length === 4) {
+      return `${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}-${parts[2]}`;
+    }
+  }
+  return clean;
+}
+
 interface Props {
   onLoadChart: (data: CalculatedData) => void;
   onOpenCompare: (chart1Id: string) => void;
@@ -125,7 +139,7 @@ export const SavedChartsView: React.FC<Props> = ({ onLoadChart, onOpenCompare })
                   <div className="flex items-center gap-1.5 text-slate-400">
                     <Calendar className="w-3.5 h-3.5 text-gold-400" />
                     <span>Birth Date:</span>
-                    <strong className="text-white font-mono">{c.date_of_birth}</strong>
+                    <strong className="text-white font-mono">{formatToDDMMYYYY(c.date_of_birth)}</strong>
                   </div>
                   {c.time_of_birth && (
                     <div className="text-[11px] text-slate-400">Time: {c.time_of_birth}</div>
@@ -134,7 +148,7 @@ export const SavedChartsView: React.FC<Props> = ({ onLoadChart, onOpenCompare })
                     <div className="text-[11px] text-slate-400">Place: {c.place_of_birth}</div>
                   )}
                   <div className="text-[10px] text-slate-500 pt-1 font-mono">
-                    Saved on {c.created_at.split('T')[0]}
+                    Saved on {formatToDDMMYYYY(c.created_at)}
                   </div>
                 </div>
               </div>

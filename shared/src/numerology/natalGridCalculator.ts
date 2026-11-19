@@ -53,8 +53,12 @@ export function calculateNatalGrid(birthInput: BirthInput): NatalCalculationResu
     finalNatalDigits.push({ value: digit, source: 'natal' });
   }
 
-  // Add Basic Number (source: 'basic')
-  finalNatalDigits.push({ value: basicNumber, source: 'basic' });
+  // Add Basic Number only when Day of Birth is two digits (>= 10, e.g. 10 to 31).
+  // For single-digit days (1-9), the day number is already present from the birthdate.
+  const isTwoDigitDay = dayNum >= 10;
+  if (isTwoDigitDay) {
+    finalNatalDigits.push({ value: basicNumber, source: 'basic' });
+  }
 
   // Add Destiny Number (source: 'destiny')
   finalNatalDigits.push({ value: destinyNumber, source: 'destiny' });

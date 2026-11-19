@@ -107,6 +107,21 @@ describe('4. Natal Grid (Section 9.3)', () => {
       assert.equal(cell?.items[0].value, singlePos);
     }
   });
+
+  it('does NOT duplicate Basic Number for single-digit birth day (e.g. 5th of month)', () => {
+    // DOB 1994-08-05: day is 5 (single digit)
+    const singleDigitResult = calculateNatalGrid({
+      fullName: 'Single Digit User',
+      dateOfBirth: '1994-08-05',
+    });
+    // Basic number = 5. Since day is single-digit, basic number is NOT added again.
+    // Date digits non-zero: [5, 8, 9, 4]
+    // Destiny: 5 + 8 + 1 + 9 + 9 + 4 = 36 -> 9
+    // Final natal digits: 5 (natal), 8 (natal), 9 (natal), 4 (natal), 9 (destiny)
+    const cell5 = singleDigitResult.grid.cells.find((c) => c.positionNumber === 5);
+    assert.equal(cell5?.items.length, 1); // Only 1 occurrence of 5 (not duplicated)
+    assert.equal(cell5?.items[0].source, 'natal');
+  });
 });
 
 describe('5. Mahadasha Calculation (Section 10)', () => {

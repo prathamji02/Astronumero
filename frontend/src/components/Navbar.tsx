@@ -56,16 +56,18 @@ export const Navbar: React.FC<Props> = ({
     <header className="sticky top-0 z-40 bg-navy-950/90 backdrop-blur-md border-b border-navy-800/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16">
-          {/* Minimalist Logo without "Premium" */}
+          {/* Minimalist Logo */}
           <div
             className="flex items-center gap-3 cursor-pointer select-none"
             onClick={() => handleNavClick('dashboard')}
           >
-            <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-black text-sm shadow-sm">
-              AN
-            </div>
+            <img
+              src="/logo.jpg"
+              alt="TalktoNakshatra Logo"
+              className="w-8 h-8 rounded-lg object-cover border border-amber-500/40 shadow-sm"
+            />
             <div className="tracking-tight text-white font-bold text-base sm:text-lg">
-              Astro<span className="text-emerald-400 font-light">Numerology</span>
+              Talkto<span className="text-amber-400 font-extrabold">Nakshatra</span>
             </div>
           </div>
 

@@ -1,12 +1,14 @@
 import { getDb } from '../../database/connection.ts';
 import { generateId, generateNumericOtp, hashOtp, verifyOtpHash } from '../../utils/security.ts';
 import { env } from '../../config/environment.ts';
+import { EmailService } from '../../services/emailService.ts';
 
 export interface SendOtpResult {
   success: boolean;
   message: string;
   channel: 'email' | 'sms';
   identifier: string;
+  deliveredLive?: boolean;
   devCode?: string; // Only returned in non-production when no live provider is configured
 }
 
@@ -48,24 +50,22 @@ export class OtpService {
     const expiresAt = new Date(now.getTime() + OTP_EXPIRY_MINUTES * 60 * 1000).toISOString();
 
     db.prepare(`
-      INSERT INTO otp_codes (id, identifier, channel, code_hash, attempts, is_used, expires_at, created_at)
-      VALUES (?, ?, ?, ?, 0, 0, ?, ?)
-    `).run(generateId(), cleanIdentifier, channel, codeHash, expiresAt, now.toISOString());
+      INSERT INTO otp_codes (id, identifier, channel, code_hash, raw_code, attempts, is_used, expires_at, created_at)
+      VALUES (?, ?, ?, ?, ?, 0, 0, ?, ?)
+    `).run(generateId(), cleanIdentifier, channel, codeHash, otp, expiresAt, now.toISOString());
 
     // Delivery handling:
     let deliveryMessage = '';
     let devCode: string | undefined = undefined;
+    let deliveredLive = false;
 
     if (channel === 'email') {
-      if (env.SMTP_HOST && env.SMTP_USER) {
-        // Production SMTP delivery (stub/adapter)
-        deliveryMessage = `OTP has been dispatched to ${cleanIdentifier}.`;
-      } else {
-        // Dev Mock Provider
-        devCode = otp;
-        deliveryMessage = `[Dev Mock Provider] OTP code for ${cleanIdentifier} is ${otp}. (Expires in 10 minutes)`;
-        console.log(`\n========================================\n[OTP DEV INBOX] ${deliveryMessage}\n========================================\n`);
-      }
+      const emailRes = await EmailService.sendOtpEmail(cleanIdentifier, otp);
+      deliveredLive = emailRes.deliveredLive;
+      devCode = otp;
+      deliveryMessage = deliveredLive
+        ? `OTP has been sent to your email (${cleanIdentifier}). Please check your inbox and spam folder.`
+        : `Verification code generated for ${cleanIdentifier}.`;
     } else {
       if (env.TWILIO_ACCOUNT_SID && env.TWILIO_PHONE_NUMBER) {
         // Production SMS delivery (stub/adapter)
@@ -83,6 +83,7 @@ export class OtpService {
       message: deliveryMessage,
       channel,
       identifier: cleanIdentifier,
+      deliveredLive,
       devCode: env.NODE_ENV !== 'production' ? devCode : undefined,
     };
   }
